@@ -455,7 +455,7 @@ button {
 }
 
 .score-label {
-    width: 80px;
+    width: 90px;
     font-weight: bold;
     flex-shrink: 0;
 }
