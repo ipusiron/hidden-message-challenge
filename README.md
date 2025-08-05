@@ -8,9 +8,9 @@
 
 ---
 
-**Hidden Message Challenge** は、「分置式暗号（concealment cipher）」の仕組みを楽しく学べるチャレンジ型Webツールです。
+**Hidden Message Challenge** は、分置式暗号（concealment cipher）の仕組みを楽しく学べるチャレンジ型Webツールです。
 
-文章に巧妙に隠された“本当のメッセージ”を見破る力を養いましょう！
+文章に巧妙に隠された「本当のメッセージ」を見破る力を養いましょう！
 
 ---
 
@@ -148,6 +148,20 @@ hidden-message-challenge/
 | 除去文字型 | 「けしごむ」→「ご」「む」を除く | ★★ |
 | だじゃれヒント型 | 暗号脇にだじゃれヒントがあり、規則が隠されている | ★★ |
 | ステンシル型 | 型紙（グリル）を重ねて読むタイプ（視覚） | ★★★ |
+
+---
+
+## 今後の予定
+
+- チャレンジ問題データの追加
+
+---
+
+## 関連リソース
+
+### ツール
+
+- [Grille CipherLab](https://github.com/ipusiron/grille-cipherlab)…回転グリル暗号の可視化ツール
 
 ---
 
