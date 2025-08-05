@@ -104,7 +104,7 @@ export class ShareManager {
         ctx.font = 'bold 28px sans-serif';
         ctx.fillText(`総合スコア: ${totalScore.percentage}%`, 500, yOffset + 20);
         
-        // ランク
+        // ランク（下部中央に配置）
         const rankColors = {
             'S': '#fbbf24',
             'A': '#ef4444',
@@ -114,13 +114,13 @@ export class ShareManager {
         };
         
         ctx.fillStyle = rankColors[rank.rank] || '#6366f1';
-        ctx.font = 'bold 72px sans-serif';
+        ctx.font = 'bold 64px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`ランク ${rank.rank}`, 950, 380);
+        ctx.fillText(`ランク ${rank.rank}`, imageCanvas.width / 2, 520);
         
         ctx.fillStyle = '#4b5563';
-        ctx.font = '24px sans-serif';
-        ctx.fillText(rank.title, 950, 420);
+        ctx.font = '28px sans-serif';
+        ctx.fillText(rank.title, imageCanvas.width / 2, 560);
         
         // フッター
         ctx.fillStyle = '#9ca3af';

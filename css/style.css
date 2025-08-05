@@ -13,7 +13,7 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -23,6 +23,18 @@ header {
     text-align: center;
     margin-bottom: 30px;
     padding: 20px 0;
+    position: relative;
+}
+
+.header-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.header-text {
+    text-align: center;
 }
 
 header h1 {
@@ -34,6 +46,34 @@ header h1 {
 .subtitle {
     color: #666;
     font-size: 1.1rem;
+}
+
+/* ヘルプボタン */
+.help-button {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    transition: all 0.3s ease;
+}
+
+.help-button:hover {
+    background: linear-gradient(135deg, #4f46e5, #3730a3);
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 /* タブナビゲーション */
@@ -313,9 +353,38 @@ button {
 
 .stencil-controls {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stencil-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.stencil-button {
+    padding: 12px 20px;
+    background-color: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.stencil-button:hover {
+    background-color: #4f46e5;
+}
+
+.stencil-move-controls {
+    display: flex;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .stencil-move, .stencil-rotate {
@@ -333,41 +402,56 @@ button {
 /* 成果タブ */
 .results-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.4fr 1fr;
     gap: 30px;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    align-items: start;
 }
 
 .chart-section {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 20px;
+    background-color: #fafafa;
+    border-radius: 12px;
+    min-height: 440px;
+}
+
+.chart-section canvas {
+    max-width: 100%;
+    height: auto;
 }
 
 .score-section h3 {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #4b5563;
+    font-size: 1.3rem;
 }
 
 .score-item {
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
 }
 
 .score-label {
-    width: 100px;
+    width: 80px;
     font-weight: bold;
+    flex-shrink: 0;
 }
 
 .score-dots {
-    font-size: 1.2rem;
-    letter-spacing: 2px;
-    margin: 0 10px;
+    margin: 0 8px;
+    flex: 1;
 }
 
 .score-percent {
     color: #6b7280;
+    font-size: 0.9rem;
+    min-width: 35px;
+    text-align: right;
 }
 
 .total-score {
@@ -382,7 +466,8 @@ button {
     background-color: #f0f9ff;
     border-radius: 12px;
     padding: 30px;
-    margin-bottom: 30px;
+    margin: 40px 0;
+    clear: both;
 }
 
 .rank-display h3 {
@@ -413,6 +498,113 @@ button {
     background-color: #4f46e5;
 }
 
+/* ヘルプモーダル専用スタイル */
+.modal-content.help-modal-content {
+    max-width: 1000px !important;
+    width: 95% !important;
+    max-height: 85vh;
+    padding: 60px 50px 50px 50px;
+    text-align: left;
+    overflow-y: auto;
+    border-radius: 12px;
+}
+
+.help-modal-content h2 {
+    color: #6366f1;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 10px;
+}
+
+.help-modal-content h3 {
+    color: #374151;
+    margin: 25px 0 15px 0;
+    font-size: 1.3rem;
+}
+
+.help-modal-content p {
+    line-height: 1.7;
+    margin-bottom: 15px;
+    color: #4b5563;
+}
+
+.help-modal-content ul {
+    margin: 15px 0;
+    padding-left: 25px;
+}
+
+.help-modal-content li {
+    margin-bottom: 10px;
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.help-modal-content .challenge-type {
+    background-color: #f0f9ff;
+    border-left: 4px solid #6366f1;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 0 8px 8px 0;
+}
+
+.help-modal-content .challenge-type h4 {
+    color: #6366f1;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.help-modal-content .tip {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 12px;
+    margin: 15px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.95rem;
+}
+
+/* スタイリッシュな進捗ドット */
+.progress-dot {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin: 0 3px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.progress-dot.pending {
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    border: 2px solid #d1d5db;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-dot.completed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: 2px solid #047857;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.progress-dot.completed::after {
+    content: '✓';
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.progress-dot:hover {
+    transform: scale(1.1);
+}
+
+.progress-dot.completed:hover {
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
 /* モーダル */
 .modal {
     display: none;
@@ -427,26 +619,68 @@ button {
 
 .modal-content {
     background-color: white;
-    margin: 15% auto;
-    padding: 30px;
+    margin: 10% auto;
+    padding: 50px 30px 30px 30px;
     border-radius: 12px;
     width: 80%;
     max-width: 500px;
+    max-height: 70vh;
     text-align: center;
     position: relative;
+    overflow-y: auto;
 }
 
 .modal-close {
     position: absolute;
-    right: 20px;
-    top: 20px;
-    font-size: 28px;
+    right: 15px;
+    top: 15px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e5e7eb;
+    font-size: 20px;
     cursor: pointer;
-    color: #9ca3af;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-    color: #4b5563;
+    color: #374151;
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    transform: scale(1.05);
+}
+
+/* フッター */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px 0;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+footer p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+footer a {
+    color: #6366f1;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: #4f46e5;
+    text-decoration: underline;
 }
 
 /* レスポンシブ */
@@ -472,7 +706,51 @@ button {
         grid-template-columns: 1fr;
     }
     
+    .chart-section {
+        min-height: 320px;
+        padding: 15px;
+    }
+    
     .button-group {
         justify-content: center;
+    }
+    
+    .modal-content {
+        width: 90%;
+        margin: 5% auto;
+        padding: 45px 20px 25px 20px;
+        max-height: 80vh;
+    }
+    
+    .modal-close {
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+        right: 10px;
+        top: 10px;
+    }
+    
+    .help-button {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+        border-radius: 50%;
+        min-width: 35px;
+        min-height: 35px;
+    }
+    
+    .modal-content.help-modal-content {
+        width: 98% !important;
+        max-width: 95vw !important;
+        padding: 50px 25px 35px 25px;
+        max-height: 90vh;
+    }
+    
+    .help-modal-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .help-modal-content h3 {
+        font-size: 1.2rem;
     }
 }

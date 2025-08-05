@@ -33,13 +33,14 @@ export const utils = {
         return normalizedUser === normalizedCorrect;
     },
 
-    // 進捗ドットの生成
+    // 進捗ドットの生成（スタイリッシュなHTML版）
     createProgressDots(completed, total) {
-        let dots = '';
+        let html = '';
         for (let i = 0; i < total; i++) {
-            dots += i < completed ? '●' : '○';
+            const isCompleted = i < completed;
+            html += `<span class="progress-dot ${isCompleted ? 'completed' : 'pending'}"></span>`;
         }
-        return dots;
+        return html;
     },
 
     // ランダムな要素を取得
@@ -57,6 +58,9 @@ export const utils = {
         return shuffled;
     },
 
+    // モーダル表示用のタイマーID
+    modalTimer: null,
+
     // モーダル表示
     showModal(message) {
         const modal = document.getElementById('message-modal');
@@ -64,9 +68,27 @@ export const utils = {
         modalMessage.textContent = message;
         modal.style.display = 'block';
         
+        // 既存のタイマーをクリア
+        if (this.modalTimer) {
+            clearTimeout(this.modalTimer);
+        }
+        
         // 3秒後に自動で閉じる
-        setTimeout(() => {
+        this.modalTimer = setTimeout(() => {
             modal.style.display = 'none';
+            this.modalTimer = null;
         }, 3000);
+    },
+
+    // モーダルを閉じる
+    closeModal() {
+        const modal = document.getElementById('message-modal');
+        modal.style.display = 'none';
+        
+        // 既存のタイマーをクリア
+        if (this.modalTimer) {
+            clearTimeout(this.modalTimer);
+            this.modalTimer = null;
+        }
     }
 };

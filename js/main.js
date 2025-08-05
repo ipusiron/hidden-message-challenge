@@ -5,6 +5,7 @@ import { PositionChallenge } from './challenges/position.js';
 import { StencilChallenge } from './challenges/stencil.js';
 import { ResultsManager } from './results/score.js';
 import { Storage } from './common/storage.js';
+import { utils } from './common/utils.js';
 
 class HiddenMessageChallenge {
     constructor() {
@@ -114,6 +115,16 @@ class HiddenMessageChallenge {
         document.querySelector('.modal-close').addEventListener('click', () => {
             this.closeModal();
         });
+
+        // ヘルプボタン
+        document.getElementById('help-button').addEventListener('click', () => {
+            this.showHelpModal();
+        });
+
+        // ヘルプモーダルの閉じるボタン
+        document.querySelector('.help-modal-close').addEventListener('click', () => {
+            this.closeHelpModal();
+        });
     }
 
     loadProgress() {
@@ -139,14 +150,80 @@ class HiddenMessageChallenge {
     }
 
     showModal(message) {
-        const modal = document.getElementById('message-modal');
-        const modalMessage = document.getElementById('modal-message');
-        modalMessage.textContent = message;
-        modal.style.display = 'block';
+        utils.showModal(message);
     }
 
     closeModal() {
-        document.getElementById('message-modal').style.display = 'none';
+        utils.closeModal();
+    }
+
+    showHelpModal() {
+        const helpModal = document.getElementById('help-modal');
+        const helpContent = document.getElementById('help-content');
+        
+        // ヘルプコンテンツを生成
+        helpContent.innerHTML = this.generateHelpContent();
+        
+        helpModal.style.display = 'block';
+    }
+
+    closeHelpModal() {
+        const helpModal = document.getElementById('help-modal');
+        helpModal.style.display = 'none';
+    }
+
+    generateHelpContent() {
+        return `
+            <h2>🔍 Hidden Message Challenge - 使い方ガイド</h2>
+            
+            <h3>🎯 このツールについて</h3>
+            <p>「Hidden Message Challenge」は、分置式暗号（concealment cipher）に隠されたメッセージを見つける教育的なチャレンジツールです。4つの異なる暗号方式を通じて、暗号解読のスキルを身につけることができます。</p>
+            
+            <div class="challenge-type">
+                <h4>📝 行頭読みチャレンジ (Level: ★)</h4>
+                <p>各行の最初の文字を上から順に読むことで隠されたメッセージを発見する方式です。最も基本的な分置式暗号の一つです。</p>
+            </div>
+            
+            <div class="challenge-type">
+                <h4>🧩 除去文字チャレンジ (Level: ★★)</h4>
+                <p>ヒントをもとに特定の文字を除去することで、隠されたメッセージが現れる方式です。「だじゃれヒント」が除去する文字を示しています。</p>
+            </div>
+            
+            <div class="challenge-type">
+                <h4>🎯 位置抽出チャレンジ (Level: ★★)</h4>
+                <p>指定されたルール（例：「句読点の3文字後」）に従って、特定の位置の文字を抽出する方式です。パターン認識が重要になります。</p>
+            </div>
+            
+            <div class="challenge-type">
+                <h4>🎭 ステンシルチャレンジ (Level: ★★★)</h4>
+                <p>ステンシル（穴空き型紙）を重ねて、見える部分の文字を読み取る方式です。移動や回転を駆使して正しい位置を見つけましょう。</p>
+                <ul>
+                    <li><strong>ステンシルを乗せる</strong>：型紙を表示します</li>
+                    <li><strong>移動ボタン</strong>：ステンシルを細かく移動できます</li>
+                    <li><strong>回転ボタン</strong>：ステンシルを90度ずつ回転します</li>
+                    <li><strong>ステンシルを外す</strong>：型紙を非表示にします</li>
+                </ul>
+            </div>
+            
+            <h3>🎮 操作方法</h3>
+            <ul>
+                <li><strong>💡 ヒント</strong>：困った時は遠慮なくヒントボタンを押してください</li>
+                <li><strong>✓ 確認</strong>：答えを入力したら確認ボタンで正解をチェック</li>
+                <li><strong>→ 次の問題</strong>：正解すると自動的に次の問題に進みます</li>
+                <li><strong>🏆 成果タブ</strong>：全体的な進捗とスコアを確認できます</li>
+            </ul>
+            
+            <div class="tip">
+                <strong>💡 コツ：</strong>分置式暗号は「隠す」ことが目的です。一見無意味に見える文章でも、ルールを理解すれば美しいメッセージが現れます。焦らずじっくり取り組んでみてください。
+            </div>
+            
+            <h3>📊 スコアシステム</h3>
+            <p>各チャレンジは5問ずつ用意されており、正解するとスコアが蓄積されます。全20問をクリアして、暗号解読マスターを目指しましょう！</p>
+            
+            <div class="tip">
+                <strong>🔄 リセット機能：</strong>成果タブの「もう一度挑戦」ボタンで、すべての進捗をリセットして最初からやり直すことができます。
+            </div>
+        `;
     }
 }
 

@@ -3,6 +3,7 @@
 import { Storage } from '../common/storage.js';
 import { ResultChart } from './chart.js';
 import { ShareManager } from './share.js';
+import { utils } from '../common/utils.js';
 
 export class ResultsManager {
     constructor() {
@@ -44,12 +45,9 @@ export class ResultsManager {
             const scoreElement = document.getElementById(`${challengeName}-score`);
             const percentElement = scoreElement.nextElementSibling;
             
-            // 進捗ドットを更新
-            let dots = '';
-            for (let i = 0; i < score.total; i++) {
-                dots += i < score.completed ? '●' : '○';
-            }
-            scoreElement.textContent = dots;
+            // 進捗ドットを更新（スタイリッシュ版）
+            const progressDots = utils.createProgressDots(score.completed, score.total);
+            scoreElement.innerHTML = progressDots;
             
             // パーセンテージを更新
             const percentage = score.total > 0 ? Math.round((score.completed / score.total) * 100) : 0;

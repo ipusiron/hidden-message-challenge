@@ -137,7 +137,7 @@ export class HeadlineChallenge {
             this.completedProblems.length,
             this.challenges.length
         );
-        document.getElementById('headline-progress').textContent = progressDots;
+        document.getElementById('headline-progress').innerHTML = progressDots;
         
         const progressCount = document.querySelector('#headline .progress-count');
         progressCount.textContent = `${this.completedProblems.length}/${this.challenges.length}`;

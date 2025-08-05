@@ -13,6 +13,7 @@ export class StencilChallenge {
         this.hintLevel = 0;
         this.stencilPosition = { x: 0, y: 0 };
         this.rotation = 0;
+        this.stencilVisible = false;
         this.dataLoaded = false;
     }
 
@@ -42,11 +43,16 @@ export class StencilChallenge {
         const challenge = this.challenges[this.currentIndex];
         this.displayChallenge(challenge);
         this.hintLevel = 0;
-        this.stencilPosition = { x: 0, y: 0 };
+        // 初期位置を少しずらして手動調整を促す
+        this.stencilPosition = { x: 1.5, y: -0.75 };
         this.rotation = 0;
+        this.stencilVisible = false;
         
         // 入力欄をクリア
         document.getElementById('stencil-answer').value = '';
+        
+        // ボタンの初期状態を設定
+        this.updateButtonState();
         
         // コントロールボタンの設定
         this.setupControls();
@@ -56,73 +62,80 @@ export class StencilChallenge {
         const container = document.querySelector('.stencil-container');
         container.innerHTML = '';
         
-        // グリッドテキストを作成
-        const textDiv = document.createElement('div');
-        textDiv.className = 'stencil-text';
-        textDiv.id = 'stencil-cipher';
+        // ベース暗号文グリッド（背景レイヤー）
+        const baseGrid = document.createElement('div');
+        baseGrid.className = 'cipher-grid';
+        baseGrid.id = 'cipher-grid';
+        baseGrid.style.position = 'absolute';
+        baseGrid.style.top = '50%';
+        baseGrid.style.left = '50%';
+        baseGrid.style.transform = 'translate(-50%, -50%)';
+        baseGrid.style.zIndex = '1';
         
-        // グリッドを表示
-        const table = document.createElement('table');
-        table.style.borderCollapse = 'collapse';
-        table.style.fontSize = '1.2rem';
-        table.style.margin = '0 auto';
+        const baseTable = document.createElement('table');
+        baseTable.style.borderCollapse = 'collapse';
+        baseTable.style.fontSize = '1.2rem';
+        baseTable.id = 'cipher-table';
         
+        // 暗号文グリッドを作成
         challenge.grid.forEach((row, y) => {
             const tr = document.createElement('tr');
             row.forEach((char, x) => {
                 const td = document.createElement('td');
                 td.textContent = char;
-                td.style.padding = '8px 12px';
-                td.style.border = '1px solid #e5e7eb';
+                td.style.width = '44px';
+                td.style.height = '44px';
+                td.style.border = '1px solid #d1d5db';
                 td.style.textAlign = 'center';
+                td.style.verticalAlign = 'middle';
+                td.style.padding = '0';
+                td.style.backgroundColor = '#f9fafb';
                 td.dataset.x = x;
                 td.dataset.y = y;
                 tr.appendChild(td);
             });
-            table.appendChild(tr);
+            baseTable.appendChild(tr);
         });
         
-        textDiv.appendChild(table);
-        container.appendChild(textDiv);
+        baseGrid.appendChild(baseTable);
+        container.appendChild(baseGrid);
         
-        // ステンシルオーバーレイを作成
-        this.createStencilOverlay(challenge);
-    }
-
-    createStencilOverlay(challenge) {
-        const container = document.querySelector('.stencil-container');
-        const existingOverlay = document.getElementById('stencil-overlay');
-        if (existingOverlay) {
-            existingOverlay.remove();
-        }
+        // ステンシルオーバーレイ（前景レイヤー）
+        const stencilOverlay = document.createElement('div');
+        stencilOverlay.className = 'stencil-overlay';
+        stencilOverlay.id = 'stencil-overlay';
+        stencilOverlay.style.position = 'absolute';
+        stencilOverlay.style.top = '50%';
+        stencilOverlay.style.left = '50%';
+        stencilOverlay.style.transformOrigin = 'center center';
+        stencilOverlay.style.zIndex = '2';
+        stencilOverlay.style.pointerEvents = 'none';
+        stencilOverlay.style.display = 'none';
         
-        const overlay = document.createElement('div');
-        overlay.className = 'stencil-overlay';
-        overlay.id = 'stencil-overlay';
-        overlay.style.position = 'absolute';
-        overlay.style.top = '50%';
-        overlay.style.left = '50%';
-        overlay.style.transform = 'translate(-50%, -50%)';
-        overlay.style.pointerEvents = 'none';
-        
-        // ステンシルグリッドを作成
         const stencilTable = document.createElement('table');
         stencilTable.style.borderCollapse = 'collapse';
+        stencilTable.id = 'stencil-table';
         
+        // ステンシルグリッドを作成
         challenge.stencil.forEach((row, y) => {
             const tr = document.createElement('tr');
-            row.forEach((isHole, x) => {
+            row.forEach((cell, x) => {
                 const td = document.createElement('td');
                 td.style.width = '44px';
-                td.style.height = '40px';
+                td.style.height = '44px';
+                td.style.border = 'none';
+                td.style.textAlign = 'center';
+                td.style.verticalAlign = 'middle';
+                td.style.padding = '0';
+                td.dataset.x = x;
+                td.dataset.y = y;
                 
-                if (isHole) {
+                if (cell === 1) {
                     // 穴（透明）
                     td.style.backgroundColor = 'transparent';
-                    td.style.border = '2px solid #6366f1';
                 } else {
-                    // 型紙（不透明）
-                    td.style.backgroundColor = 'rgba(99, 102, 241, 0.9)';
+                    // ステンシル本体（半透明の青）
+                    td.style.backgroundColor = 'rgba(99, 102, 241, 0.7)';
                 }
                 
                 tr.appendChild(td);
@@ -130,14 +143,48 @@ export class StencilChallenge {
             stencilTable.appendChild(tr);
         });
         
-        overlay.appendChild(stencilTable);
-        container.appendChild(overlay);
+        stencilOverlay.appendChild(stencilTable);
+        container.appendChild(stencilOverlay);
         
-        // 見える文字を更新
-        this.updateVisibleChars(challenge);
+        // 初期状態ではステンシルを非表示
+        this.stencilVisible = false;
     }
 
+    // 新しい独立レイヤーシステム
+    updateStencilDisplay() {
+        const stencilOverlay = document.getElementById('stencil-overlay');
+        if (!stencilOverlay) return;
+        
+        if (this.stencilVisible) {
+            stencilOverlay.style.display = 'block';
+            // ステンシルの位置と回転を更新（中央基準での移動）
+            const offsetX = this.stencilPosition.x * 44; // セルサイズ44px
+            const offsetY = this.stencilPosition.y * 44;
+            const rotationDegrees = this.rotation * 90;
+            stencilOverlay.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) rotate(${rotationDegrees}deg)`;
+        } else {
+            stencilOverlay.style.display = 'none';
+        }
+    }
+
+    // 簡素化された移動システム（transformで直接制御）
+
     setupControls() {
+        // ステンシル表示/非表示ボタン
+        const applyButton = document.getElementById('stencil-apply');
+        const removeButton = document.getElementById('stencil-remove');
+        
+        // 既存のリスナーを削除して新しく設定
+        const newApplyButton = applyButton.cloneNode(true);
+        applyButton.parentNode.replaceChild(newApplyButton, applyButton);
+        
+        const newRemoveButton = removeButton.cloneNode(true);
+        removeButton.parentNode.replaceChild(newRemoveButton, removeButton);
+        
+        document.getElementById('stencil-apply').addEventListener('click', () => this.applyStencil());
+        document.getElementById('stencil-remove').addEventListener('click', () => this.removeStencil());
+        
+        // 移動・回転ボタン
         const moveButtons = document.querySelectorAll('.stencil-move');
         const rotateButton = document.querySelector('.stencil-rotate');
         
@@ -152,77 +199,53 @@ export class StencilChallenge {
         
         // 新しいリスナーを設定
         const newMoveButtons = document.querySelectorAll('.stencil-move');
-        newMoveButtons[0].addEventListener('click', () => this.moveStencil(0, -1));
-        newMoveButtons[1].addEventListener('click', () => this.moveStencil(0, 1));
-        newMoveButtons[2].addEventListener('click', () => this.moveStencil(-1, 0));
-        newMoveButtons[3].addEventListener('click', () => this.moveStencil(1, 0));
+        newMoveButtons[0].addEventListener('click', () => this.moveStencil(0, -0.25));
+        newMoveButtons[1].addEventListener('click', () => this.moveStencil(0, 0.25));
+        newMoveButtons[2].addEventListener('click', () => this.moveStencil(-0.25, 0));
+        newMoveButtons[3].addEventListener('click', () => this.moveStencil(0.25, 0));
         
         document.querySelector('.stencil-rotate').addEventListener('click', () => this.rotateStencil());
+    }
+
+    applyStencil() {
+        this.stencilVisible = true;
+        // 初期位置を少しずらして表示
+        this.stencilPosition = { x: 1.5, y: -0.75 };
+        this.updateButtonState();
+        this.updateStencilDisplay();
+    }
+
+    removeStencil() {
+        this.stencilVisible = false;
+        this.updateButtonState();
+        this.updateStencilDisplay();
+    }
+
+    updateButtonState() {
+        const applyButton = document.getElementById('stencil-apply');
+        const removeButton = document.getElementById('stencil-remove');
+        const moveControls = document.querySelector('.stencil-move-controls');
+        
+        if (this.stencilVisible) {
+            applyButton.style.display = 'none';
+            removeButton.style.display = 'inline-block';
+            moveControls.style.display = 'block';
+        } else {
+            applyButton.style.display = 'inline-block';
+            removeButton.style.display = 'none';
+            moveControls.style.display = 'none';
+        }
     }
 
     moveStencil(dx, dy) {
         this.stencilPosition.x += dx;
         this.stencilPosition.y += dy;
-        
-        const overlay = document.getElementById('stencil-overlay');
-        const currentTransform = overlay.style.transform;
-        const rotation = this.rotation * 90;
-        
-        overlay.style.transform = `translate(calc(-50% + ${this.stencilPosition.x * 44}px), calc(-50% + ${this.stencilPosition.y * 40}px)) rotate(${rotation}deg)`;
-        
-        this.updateVisibleChars(this.challenges[this.currentIndex]);
+        this.updateStencilDisplay();
     }
 
     rotateStencil() {
         this.rotation = (this.rotation + 1) % 4;
-        
-        const overlay = document.getElementById('stencil-overlay');
-        const rotation = this.rotation * 90;
-        
-        overlay.style.transform = `translate(calc(-50% + ${this.stencilPosition.x * 44}px), calc(-50% + ${this.stencilPosition.y * 40}px)) rotate(${rotation}deg)`;
-        
-        this.updateVisibleChars(this.challenges[this.currentIndex]);
-    }
-
-    updateVisibleChars(challenge) {
-        // 現在の位置で見える文字を計算
-        const visibleChars = [];
-        const stencil = challenge.stencil;
-        
-        for (let sy = 0; sy < stencil.length; sy++) {
-            for (let sx = 0; sx < stencil[sy].length; sx++) {
-                if (stencil[sy][sx] === 1) {
-                    // 回転を考慮した実際の位置を計算
-                    let actualX = sx + this.stencilPosition.x;
-                    let actualY = sy + this.stencilPosition.y;
-                    
-                    // グリッド内の文字を取得
-                    if (actualY >= 0 && actualY < challenge.grid.length &&
-                        actualX >= 0 && actualX < challenge.grid[actualY].length) {
-                        visibleChars.push({
-                            char: challenge.grid[actualY][actualX],
-                            x: actualX,
-                            y: actualY
-                        });
-                    }
-                }
-            }
-        }
-        
-        // テーブルのセルをハイライト
-        const cells = document.querySelectorAll('.stencil-text td');
-        cells.forEach(cell => {
-            cell.style.backgroundColor = '';
-            cell.style.fontWeight = 'normal';
-        });
-        
-        visibleChars.forEach(vc => {
-            const cell = document.querySelector(`.stencil-text td[data-x="${vc.x}"][data-y="${vc.y}"]`);
-            if (cell) {
-                cell.style.backgroundColor = '#fef3c7';
-                cell.style.fontWeight = 'bold';
-            }
-        });
+        this.updateStencilDisplay();
     }
 
     showHint() {
@@ -236,10 +259,10 @@ export class StencilChallenge {
             this.hintLevel = 2;
         } else {
             // 正解位置のヒント
-            utils.showModal('型紙を初期位置のまま使ってみてください');
+            utils.showModal('型紙を正しい位置に調整してみてください。移動ボタンで細かく調整できます');
             this.stencilPosition = { x: 0, y: 0 };
             this.rotation = 0;
-            this.moveStencil(0, 0);
+            this.updateStencilDisplay();
         }
     }
 
@@ -290,7 +313,7 @@ export class StencilChallenge {
             this.completedProblems.length,
             this.challenges.length
         );
-        document.getElementById('stencil-progress').textContent = progressDots;
+        document.getElementById('stencil-progress').innerHTML = progressDots;
         
         const progressCount = document.querySelector('#stencil .progress-count');
         progressCount.textContent = `${this.completedProblems.length}/${this.challenges.length}`;

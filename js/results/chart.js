@@ -4,9 +4,9 @@ export class ResultChart {
     constructor() {
         this.canvas = null;
         this.ctx = null;
-        this.centerX = 150;
-        this.centerY = 150;
-        this.radius = 100;
+        this.centerX = 200;
+        this.centerY = 200;
+        this.radius = 120;
         this.levels = 5;
     }
 
@@ -82,7 +82,13 @@ export class ResultChart {
         
         labels.forEach((label, i) => {
             const angle = angleStep * i - Math.PI / 2;
-            const labelRadius = this.radius + 25;
+            let labelRadius = this.radius + 20;
+            
+            // 左右のラベルは1文字分（約7px）近づける
+            if (Math.abs(Math.cos(angle)) > 0.7) { // 左右の位置（約45度以上の角度）
+                labelRadius = this.radius + 10;
+            }
+            
             const x = this.centerX + Math.cos(angle) * labelRadius;
             const y = this.centerY + Math.sin(angle) * labelRadius;
             

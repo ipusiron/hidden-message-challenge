@@ -47,6 +47,13 @@ export class RemoveCharChallenge {
         document.getElementById('remove-char-2').value = '';
         document.getElementById('remove-char-3').value = '';
         
+        // プレビューエリアをクリア
+        const removeSection = document.querySelector('#removeChar .answer-section');
+        const existingPreview = removeSection.querySelector('.decrypted-preview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+        
         // 入力欄のイベントリスナーを設定
         this.setupInputListeners();
     }
@@ -249,7 +256,7 @@ export class RemoveCharChallenge {
             this.completedProblems.length,
             this.challenges.length
         );
-        document.getElementById('removeChar-progress').textContent = progressDots;
+        document.getElementById('removeChar-progress').innerHTML = progressDots;
         
         const progressCount = document.querySelector('#removeChar .progress-count');
         progressCount.textContent = `${this.completedProblems.length}/${this.challenges.length}`;

@@ -196,7 +196,7 @@ export class PositionChallenge {
             this.completedProblems.length,
             this.challenges.length
         );
-        document.getElementById('position-progress').textContent = progressDots;
+        document.getElementById('position-progress').innerHTML = progressDots;
         
         const progressCount = document.querySelector('#position .progress-count');
         progressCount.textContent = `${this.completedProblems.length}/${this.challenges.length}`;

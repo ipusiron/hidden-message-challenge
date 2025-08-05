@@ -10,8 +10,15 @@
 <body>
     <div class="container">
         <header>
-            <h1>🔍 Hidden Message Challenge</h1>
-            <p class="subtitle">分置式暗号文に隠されたメッセージを見つけ出そう！</p>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>🔍 Hidden Message Challenge</h1>
+                    <p class="subtitle">分置式暗号文に隠されたメッセージを見つけ出そう！</p>
+                </div>
+                <button id="help-button" class="help-button" title="ヘルプを表示">
+                    <span>?</span>
+                </button>
+            </div>
         </header>
 
         <nav class="tabs">
@@ -140,11 +147,17 @@
                     </div>
                 </div>
                 <div class="stencil-controls">
-                    <button class="stencil-move">↑</button>
-                    <button class="stencil-move">↓</button>
-                    <button class="stencil-move">←</button>
-                    <button class="stencil-move">→</button>
-                    <button class="stencil-rotate">↻ 回転</button>
+                    <div class="stencil-toggle">
+                        <button id="stencil-apply" class="stencil-button">🎭 ステンシルを乗せる</button>
+                        <button id="stencil-remove" class="stencil-button" style="display: none;">📄 ステンシルを外す</button>
+                    </div>
+                    <div class="stencil-move-controls" style="display: none;">
+                        <button class="stencil-move">↑</button>
+                        <button class="stencil-move">↓</button>
+                        <button class="stencil-move">←</button>
+                        <button class="stencil-move">→</button>
+                        <button class="stencil-rotate">↻ 回転</button>
+                    </div>
                 </div>
                 <div class="answer-section">
                     <label for="stencil-answer">解答:</label>
@@ -169,7 +182,7 @@
                 </div>
                 <div class="results-container">
                     <div class="chart-section">
-                        <canvas id="radar-chart" width="300" height="300"></canvas>
+                        <canvas id="radar-chart" width="400" height="400"></canvas>
                     </div>
                     <div class="score-section">
                         <h3>📊 各チャレンジ結果</h3>
@@ -203,7 +216,7 @@
                     <p id="rank-message">チャレンジを始めてみましょう！</p>
                 </div>
                 <div class="share-buttons">
-                    <button id="share-twitter" class="share-button">📱 結果をシェア</button>
+                    <button id="share-twitter" class="share-button">📱 結果をXでシェア</button>
                     <button id="download-image" class="share-button">📥 画像保存</button>
                     <button id="retry-all" class="share-button">🔄 もう一度挑戦</button>
                 </div>
@@ -216,6 +229,19 @@
                 <p id="modal-message"></p>
             </div>
         </div>
+
+        <div id="help-modal" class="modal">
+            <div class="modal-content help-modal-content">
+                <span class="modal-close help-modal-close">&times;</span>
+                <div id="help-content">
+                    <!-- ヘルプコンテンツがここに動的に挿入される -->
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>🔗 GitHubリポジトリはこちら（ <a href="https://github.com/ipusiron/hidden-message-challenge" target="_blank" rel="noopener noreferrer">ipusiron/hidden-message-challenge</a> ）</p>
+        </footer>
     </div>
 
     <script src="js/main.js" type="module"></script>
