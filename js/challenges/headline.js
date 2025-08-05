@@ -10,6 +10,7 @@ export class HeadlineChallenge {
         this.challenges = [];
         this.currentIndex = 0;
         this.completedProblems = [];
+        this.incorrectProblems = [];
         this.hintLevel = 0;
         this.dataLoaded = false;
     }
@@ -23,6 +24,7 @@ export class HeadlineChallenge {
         
         this.currentIndex = this.storage.getCurrentIndex('headline');
         this.completedProblems = this.storage.getCompletedProblems('headline');
+        this.incorrectProblems = this.storage.getIncorrectProblems('headline');
         this.updateProgressDisplay();
     }
 
@@ -40,6 +42,9 @@ export class HeadlineChallenge {
         const challenge = this.challenges[this.currentIndex];
         this.displayChallenge(challenge);
         this.hintLevel = 0;
+        
+        // 進捗表示を更新（クリックリスナーも設定）
+        this.updateProgressDisplay();
         
         // 入力欄をクリア
         document.getElementById('headline-answer').value = '';
@@ -98,9 +103,9 @@ export class HeadlineChallenge {
             // 正解
             utils.showModal('正解です！素晴らしい！');
             
-            // 完了済みに追加
-            if (!this.completedProblems.includes(challenge.id)) {
-                this.completedProblems.push(challenge.id);
+            // 完了済みに追加（インデックスベース）
+            if (!this.completedProblems.includes(this.currentIndex)) {
+                this.completedProblems.push(this.currentIndex);
                 this.storage.saveCompletedProblems('headline', this.completedProblems);
             }
             
@@ -114,6 +119,13 @@ export class HeadlineChallenge {
         } else {
             // 不正解
             utils.showModal('残念！もう一度考えてみましょう');
+            
+            // 不正解として記録
+            if (!this.incorrectProblems.includes(this.currentIndex)) {
+                this.incorrectProblems.push(this.currentIndex);
+                this.storage.saveIncorrectProblems('headline', this.incorrectProblems);
+                this.updateProgressDisplay();
+            }
         }
     }
 
@@ -134,18 +146,47 @@ export class HeadlineChallenge {
 
     updateProgressDisplay() {
         const progressDots = utils.createProgressDots(
-            this.completedProblems.length,
-            this.challenges.length
+            this.completedProblems,  // 配列を直接渡す
+            this.challenges.length,
+            'headline',
+            this.currentIndex,
+            this.incorrectProblems
         );
         document.getElementById('headline-progress').innerHTML = progressDots;
         
         const progressCount = document.querySelector('#headline .progress-count');
         progressCount.textContent = `${this.completedProblems.length}/${this.challenges.length}`;
+        
+        // 現在の問題番号を更新
+        const currentIndicator = document.getElementById('headline-current');
+        currentIndicator.textContent = `問題${this.currentIndex + 1}`;
+        
+        // クリックイベントを追加
+        this.setupProgressDotListeners();
+    }
+
+    setupProgressDotListeners() {
+        const dots = document.querySelectorAll('#headline-progress .progress-dot.clickable');
+        dots.forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.jumpToProblem(index);
+            });
+        });
+    }
+
+    jumpToProblem(index) {
+        if (index >= 0 && index < this.challenges.length) {
+            this.currentIndex = index;
+            this.storage.saveCurrentIndex('headline', this.currentIndex);
+            this.loadChallenge();
+        }
     }
 
     reset() {
         this.currentIndex = 0;
         this.completedProblems = [];
+        this.incorrectProblems = [];
         this.storage.clearChallenge('headline');
         this.updateProgressDisplay();
         this.loadChallenge();

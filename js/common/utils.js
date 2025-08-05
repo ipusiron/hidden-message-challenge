@@ -34,11 +34,29 @@ export const utils = {
     },
 
     // 進捗ドットの生成（スタイリッシュなHTML版）
-    createProgressDots(completed, total) {
+    createProgressDots(completedParam, total, challengeName = '', currentIndex = 0, incorrectIndices = []) {
         let html = '';
+        // completedParamが配列の場合（インデックスリスト）と数値の場合の両方に対応
+        const completedIndices = Array.isArray(completedParam) ? completedParam : [];
+        const completedCount = Array.isArray(completedParam) ? completedParam.length : completedParam;
+        
         for (let i = 0; i < total; i++) {
-            const isCompleted = i < completed;
-            html += `<span class="progress-dot ${isCompleted ? 'completed' : 'pending'}"></span>`;
+            // 配列の場合はインデックスをチェック、数値の場合は従来通り
+            const isCompleted = Array.isArray(completedParam) ? 
+                completedIndices.includes(i) : 
+                i < completedCount;
+            const isIncorrect = incorrectIndices.includes(i);
+            const isCurrent = i === currentIndex;
+            
+            let statusClass = 'pending';
+            if (isCompleted) statusClass = 'completed';
+            else if (isIncorrect) statusClass = 'incorrect';
+            
+            const className = `progress-dot ${statusClass} ${isCurrent ? 'current' : ''}`;
+            const dataAttr = challengeName ? `data-challenge="${challengeName}" data-index="${i}"` : '';
+            const clickable = challengeName ? 'clickable' : '';
+            const title = challengeName ? `title="問題 ${i + 1}"` : '';
+            html += `<span class="${className} ${clickable}" ${dataAttr} ${title}></span>`;
         }
         return html;
     },

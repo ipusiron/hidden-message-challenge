@@ -45,12 +45,22 @@ export class ResultsManager {
             const scoreElement = document.getElementById(`${challengeName}-score`);
             const percentElement = scoreElement.nextElementSibling;
             
-            // 進捗ドットを更新（スタイリッシュ版）
-            const progressDots = utils.createProgressDots(score.completed, score.total);
+            // 完了・不正解の詳細データを取得
+            const completedProblems = this.storage.getCompletedProblems(challengeName);
+            const incorrectProblems = this.storage.getIncorrectProblems(challengeName);
+            
+            // 進捗ドットを更新（詳細な状態を表示）
+            const progressDots = utils.createProgressDots(
+                completedProblems,
+                score.total,
+                '',  // 結果タブではクリック不可
+                -1,  // 現在位置なし
+                incorrectProblems
+            );
             scoreElement.innerHTML = progressDots;
             
             // パーセンテージを更新
-            const percentage = score.total > 0 ? Math.round((score.completed / score.total) * 100) : 0;
+            const percentage = score.total > 0 ? Math.round((completedProblems.length / score.total) * 100) : 0;
             percentElement.textContent = `${percentage}%`;
         });
     }
@@ -138,11 +148,23 @@ export class ResultsManager {
     downloadImage() {
         const canvas = document.getElementById('radar-chart');
         const scores = this.storage.getAllScores();
+        
+        // 各チャレンジの詳細データを取得
+        const detailedScores = {};
+        this.challengeNames.forEach(challengeName => {
+            detailedScores[challengeName] = {
+                ...scores[challengeName],
+                completedIndices: this.storage.getCompletedProblems(challengeName),
+                incorrectIndices: this.storage.getIncorrectProblems(challengeName)
+            };
+        });
+        
         const totalScore = this.calculateTotalScore(scores);
         const rank = this.calculateRank(totalScore.percentage);
         
         const results = {
             scores: scores,
+            detailedScores: detailedScores,
             totalScore: totalScore,
             rank: rank,
             challengeLabels: this.challengeLabels

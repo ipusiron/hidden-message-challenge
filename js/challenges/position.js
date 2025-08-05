@@ -10,6 +10,7 @@ export class PositionChallenge {
         this.challenges = [];
         this.currentIndex = 0;
         this.completedProblems = [];
+        this.incorrectProblems = [];
         this.hintLevel = 0;
         this.dataLoaded = false;
     }
@@ -23,6 +24,7 @@ export class PositionChallenge {
         
         this.currentIndex = this.storage.getCurrentIndex('position');
         this.completedProblems = this.storage.getCompletedProblems('position');
+        this.incorrectProblems = this.storage.getIncorrectProblems('position');
         this.updateProgressDisplay();
     }
 
@@ -40,6 +42,9 @@ export class PositionChallenge {
         const challenge = this.challenges[this.currentIndex];
         this.displayChallenge(challenge);
         this.hintLevel = 0;
+        
+        // 進捗表示を更新（クリックリスナーも設定）
+        this.updateProgressDisplay();
         
         // 入力欄をクリア
         document.getElementById('position-answer').value = '';
@@ -158,8 +163,8 @@ export class PositionChallenge {
             utils.showModal('正解です！素晴らしい観察力です！');
             
             // 完了済みに追加
-            if (!this.completedProblems.includes(challenge.id)) {
-                this.completedProblems.push(challenge.id);
+            if (!this.completedProblems.includes(this.currentIndex)) {
+                this.completedProblems.push(this.currentIndex);
                 this.storage.saveCompletedProblems('position', this.completedProblems);
             }
             
@@ -171,7 +176,12 @@ export class PositionChallenge {
                 this.nextChallenge();
             }, 1500);
         } else {
-            // 不正解
+            // 不正解として記録
+            if (!this.incorrectProblems.includes(this.currentIndex)) {
+                this.incorrectProblems.push(this.currentIndex);
+                this.storage.saveIncorrectProblems('position', this.incorrectProblems);
+                this.updateProgressDisplay();
+            }
             utils.showModal('もう一度ルールを確認してみましょう');
         }
     }
@@ -193,18 +203,47 @@ export class PositionChallenge {
 
     updateProgressDisplay() {
         const progressDots = utils.createProgressDots(
-            this.completedProblems.length,
-            this.challenges.length
+            this.completedProblems,  // 配列を直接渡す
+            this.challenges.length,
+            'position',
+            this.currentIndex,
+            this.incorrectProblems
         );
         document.getElementById('position-progress').innerHTML = progressDots;
         
         const progressCount = document.querySelector('#position .progress-count');
         progressCount.textContent = `${this.completedProblems.length}/${this.challenges.length}`;
+        
+        // 現在の問題番号を更新
+        const currentIndicator = document.getElementById('position-current');
+        currentIndicator.textContent = `問題${this.currentIndex + 1}`;
+        
+        // Setup click listeners for progress dots
+        this.setupProgressDotListeners();
+    }
+
+    setupProgressDotListeners() {
+        const dots = document.querySelectorAll('#position-progress .progress-dot.clickable');
+        dots.forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.jumpToProblem(index);
+            });
+        });
+    }
+
+    jumpToProblem(index) {
+        if (index >= 0 && index < this.challenges.length) {
+            this.currentIndex = index;
+            this.storage.saveCurrentIndex('position', this.currentIndex);
+            this.loadChallenge();
+        }
     }
 
     reset() {
         this.currentIndex = 0;
         this.completedProblems = [];
+        this.incorrectProblems = [];
         this.storage.clearChallenge('position');
         this.updateProgressDisplay();
         this.loadChallenge();

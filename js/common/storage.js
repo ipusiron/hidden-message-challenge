@@ -69,13 +69,27 @@ export class Storage {
         return data ? JSON.parse(data) : [];
     }
 
+    // 不正解問題のインデックスを保存
+    saveIncorrectProblems(challengeName, incorrectIndices) {
+        const key = `${this.prefix}${challengeName}_incorrect`;
+        localStorage.setItem(key, JSON.stringify(incorrectIndices));
+    }
+
+    // 不正解問題のインデックスを取得
+    getIncorrectProblems(challengeName) {
+        const key = `${this.prefix}${challengeName}_incorrect`;
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : [];
+    }
+
     // 特定のチャレンジのデータをクリア
     clearChallenge(challengeName) {
         const keys = [
             `${this.prefix}${challengeName}_progress`,
             `${this.prefix}${challengeName}_score`,
             `${this.prefix}${challengeName}_currentIndex`,
-            `${this.prefix}${challengeName}_completed`
+            `${this.prefix}${challengeName}_completed`,
+            `${this.prefix}${challengeName}_incorrect`
         ];
         
         keys.forEach(key => {

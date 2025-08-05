@@ -10,6 +10,7 @@ export class StencilChallenge {
         this.challenges = [];
         this.currentIndex = 0;
         this.completedProblems = [];
+        this.incorrectProblems = [];
         this.hintLevel = 0;
         this.stencilPosition = { x: 0, y: 0 };
         this.rotation = 0;
@@ -26,6 +27,7 @@ export class StencilChallenge {
         
         this.currentIndex = this.storage.getCurrentIndex('stencil');
         this.completedProblems = this.storage.getCompletedProblems('stencil');
+        this.incorrectProblems = this.storage.getIncorrectProblems('stencil');
         this.updateProgressDisplay();
     }
 
@@ -43,6 +45,10 @@ export class StencilChallenge {
         const challenge = this.challenges[this.currentIndex];
         this.displayChallenge(challenge);
         this.hintLevel = 0;
+        
+        // 進捗表示を更新（クリックリスナーも設定）
+        this.updateProgressDisplay();
+        
         // 初期位置を少しずらして手動調整を促す
         this.stencilPosition = { x: 1.5, y: -0.75 };
         this.rotation = 0;
@@ -275,8 +281,8 @@ export class StencilChallenge {
             utils.showModal('正解です！見事に解読できました！');
             
             // 完了済みに追加
-            if (!this.completedProblems.includes(challenge.id)) {
-                this.completedProblems.push(challenge.id);
+            if (!this.completedProblems.includes(this.currentIndex)) {
+                this.completedProblems.push(this.currentIndex);
                 this.storage.saveCompletedProblems('stencil', this.completedProblems);
             }
             
@@ -288,7 +294,12 @@ export class StencilChallenge {
                 this.nextChallenge();
             }, 1500);
         } else {
-            // 不正解
+            // 不正解として記録
+            if (!this.incorrectProblems.includes(this.currentIndex)) {
+                this.incorrectProblems.push(this.currentIndex);
+                this.storage.saveIncorrectProblems('stencil', this.incorrectProblems);
+                this.updateProgressDisplay();
+            }
             utils.showModal('型紙の位置を調整して、もう一度試してみましょう');
         }
     }
@@ -310,18 +321,47 @@ export class StencilChallenge {
 
     updateProgressDisplay() {
         const progressDots = utils.createProgressDots(
-            this.completedProblems.length,
-            this.challenges.length
+            this.completedProblems,  // 配列を直接渡す
+            this.challenges.length,
+            'stencil',
+            this.currentIndex,
+            this.incorrectProblems
         );
         document.getElementById('stencil-progress').innerHTML = progressDots;
         
         const progressCount = document.querySelector('#stencil .progress-count');
         progressCount.textContent = `${this.completedProblems.length}/${this.challenges.length}`;
+        
+        // 現在の問題番号を更新
+        const currentIndicator = document.getElementById('stencil-current');
+        currentIndicator.textContent = `問題${this.currentIndex + 1}`;
+        
+        // Setup click listeners for progress dots
+        this.setupProgressDotListeners();
+    }
+
+    setupProgressDotListeners() {
+        const dots = document.querySelectorAll('#stencil-progress .progress-dot.clickable');
+        dots.forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.jumpToProblem(index);
+            });
+        });
+    }
+
+    jumpToProblem(index) {
+        if (index >= 0 && index < this.challenges.length) {
+            this.currentIndex = index;
+            this.storage.saveCurrentIndex('stencil', this.currentIndex);
+            this.loadChallenge();
+        }
     }
 
     reset() {
         this.currentIndex = 0;
         this.completedProblems = [];
+        this.incorrectProblems = [];
         this.storage.clearChallenge('stencil');
         this.updateProgressDisplay();
         this.loadChallenge();

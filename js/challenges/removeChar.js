@@ -10,6 +10,7 @@ export class RemoveCharChallenge {
         this.challenges = [];
         this.currentIndex = 0;
         this.completedProblems = [];
+        this.incorrectProblems = [];
         this.hintLevel = 0;
         this.dataLoaded = false;
     }
@@ -23,6 +24,7 @@ export class RemoveCharChallenge {
         
         this.currentIndex = this.storage.getCurrentIndex('removeChar');
         this.completedProblems = this.storage.getCompletedProblems('removeChar');
+        this.incorrectProblems = this.storage.getIncorrectProblems('removeChar');
         this.updateProgressDisplay();
     }
 
@@ -41,11 +43,15 @@ export class RemoveCharChallenge {
         this.displayChallenge(challenge);
         this.hintLevel = 0;
         
+        // 進捗表示を更新（クリックリスナーも設定）
+        this.updateProgressDisplay();
+        
         // 入力欄をクリア
         document.getElementById('removeChar-answer').value = '';
         document.getElementById('remove-char-1').value = '';
         document.getElementById('remove-char-2').value = '';
         document.getElementById('remove-char-3').value = '';
+        document.getElementById('remove-char-4').value = '';
         
         // プレビューエリアをクリア
         const removeSection = document.querySelector('#removeChar .answer-section');
@@ -90,7 +96,8 @@ export class RemoveCharChallenge {
         const inputs = [
             document.getElementById('remove-char-1'),
             document.getElementById('remove-char-2'),
-            document.getElementById('remove-char-3')
+            document.getElementById('remove-char-3'),
+            document.getElementById('remove-char-4')
         ];
         
         inputs.forEach(input => {
@@ -103,7 +110,8 @@ export class RemoveCharChallenge {
         const newInputs = [
             document.getElementById('remove-char-1'),
             document.getElementById('remove-char-2'),
-            document.getElementById('remove-char-3')
+            document.getElementById('remove-char-3'),
+            document.getElementById('remove-char-4')
         ];
         
         newInputs.forEach(input => {
@@ -117,7 +125,8 @@ export class RemoveCharChallenge {
         const removeChars = [
             document.getElementById('remove-char-1').value,
             document.getElementById('remove-char-2').value,
-            document.getElementById('remove-char-3').value
+            document.getElementById('remove-char-3').value,
+            document.getElementById('remove-char-4').value
         ].filter(char => char !== '');
         
         const cipherDiv = document.getElementById('removeChar-cipher');
@@ -131,6 +140,7 @@ export class RemoveCharChallenge {
         const removeChar1 = document.getElementById('remove-char-1').value;
         const removeChar2 = document.getElementById('remove-char-2').value;
         const removeChar3 = document.getElementById('remove-char-3').value;
+        const removeChar4 = document.getElementById('remove-char-4').value;
         
         let decrypted = this.originalCipher;
         if (removeChar1) {
@@ -141,6 +151,9 @@ export class RemoveCharChallenge {
         }
         if (removeChar3) {
             decrypted = decrypted.split(removeChar3).join('');
+        }
+        if (removeChar4) {
+            decrypted = decrypted.split(removeChar4).join('');
         }
         
         // プレビュー表示
@@ -199,6 +212,7 @@ export class RemoveCharChallenge {
         const removeChar1 = document.getElementById('remove-char-1').value;
         const removeChar2 = document.getElementById('remove-char-2').value;
         const removeChar3 = document.getElementById('remove-char-3').value;
+        const removeChar4 = document.getElementById('remove-char-4').value;
         
         // 暗号文から文字を除去
         let decrypted = this.originalCipher;
@@ -211,6 +225,9 @@ export class RemoveCharChallenge {
         if (removeChar3) {
             decrypted = decrypted.split(removeChar3).join('');
         }
+        if (removeChar4) {
+            decrypted = decrypted.split(removeChar4).join('');
+        }
         
         if (utils.compareAnswer(userAnswer, challenge.answer) || 
             utils.compareAnswer(decrypted, challenge.answer)) {
@@ -218,8 +235,8 @@ export class RemoveCharChallenge {
             utils.showModal('正解です！よくできました！');
             
             // 完了済みに追加
-            if (!this.completedProblems.includes(challenge.id)) {
-                this.completedProblems.push(challenge.id);
+            if (!this.completedProblems.includes(this.currentIndex)) {
+                this.completedProblems.push(this.currentIndex);
                 this.storage.saveCompletedProblems('removeChar', this.completedProblems);
             }
             
@@ -231,7 +248,12 @@ export class RemoveCharChallenge {
                 this.nextChallenge();
             }, 1500);
         } else {
-            // 不正解
+            // 不正解として記録
+            if (!this.incorrectProblems.includes(this.currentIndex)) {
+                this.incorrectProblems.push(this.currentIndex);
+                this.storage.saveIncorrectProblems('removeChar', this.incorrectProblems);
+                this.updateProgressDisplay();
+            }
             utils.showModal('もう一度考えてみましょう。除去する文字は合っていますか？');
         }
     }
@@ -253,18 +275,47 @@ export class RemoveCharChallenge {
 
     updateProgressDisplay() {
         const progressDots = utils.createProgressDots(
-            this.completedProblems.length,
-            this.challenges.length
+            this.completedProblems,  // 配列を直接渡す
+            this.challenges.length,
+            'removeChar',
+            this.currentIndex,
+            this.incorrectProblems
         );
         document.getElementById('removeChar-progress').innerHTML = progressDots;
         
         const progressCount = document.querySelector('#removeChar .progress-count');
         progressCount.textContent = `${this.completedProblems.length}/${this.challenges.length}`;
+        
+        // 現在の問題番号を更新
+        const currentIndicator = document.getElementById('removeChar-current');
+        currentIndicator.textContent = `問題${this.currentIndex + 1}`;
+        
+        // Setup click listeners for progress dots
+        this.setupProgressDotListeners();
+    }
+
+    setupProgressDotListeners() {
+        const dots = document.querySelectorAll('#removeChar-progress .progress-dot.clickable');
+        dots.forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.jumpToProblem(index);
+            });
+        });
+    }
+
+    jumpToProblem(index) {
+        if (index >= 0 && index < this.challenges.length) {
+            this.currentIndex = index;
+            this.storage.saveCurrentIndex('removeChar', this.currentIndex);
+            this.loadChallenge();
+        }
     }
 
     reset() {
         this.currentIndex = 0;
         this.completedProblems = [];
+        this.incorrectProblems = [];
         this.storage.clearChallenge('removeChar');
         this.updateProgressDisplay();
         this.loadChallenge();
