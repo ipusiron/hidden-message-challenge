@@ -137,3 +137,7 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# ChatGPT/Claude用のローカル設定ファイル
+.claude/
+*.log
