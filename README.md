@@ -1,4 +1,15 @@
-# 🔍 Hidden Message Challenge - 分置式暗号文解読チャレンジツール
+<!--
+---
+title: Hidden Message Challenge
+category: classical-cryptography
+difficulty: 1
+description: Hands-on concealment cipher training app. Learn to spot hidden messages in natural-looking texts through interactive challenges.
+tags: [concealment-cipher, steganography, classical, training, puzzle]
+demo: https://ipusiron.github.io/hidden-message-challenge/
+---
+-->
+
+# Hidden Message Challenge - 分置式暗号文解読チャレンジツール
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/ipusiron/hidden-message-challenge?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/ipusiron/hidden-message-challenge?style=social)
@@ -6,11 +17,18 @@
 ![GitHub license](https://img.shields.io/github/license/ipusiron/hidden-message-challenge)
 [![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-blue?logo=github)](https://ipusiron.github.io/hidden-message-challenge/)
 
----
+**Day036 - 生成AIで作るセキュリティツール100**
+
 
 **Hidden Message Challenge** は、分置式暗号の仕組みを楽しく学べるチャレンジ型Webツールです。
 
-文章に巧妙に隠された「本当のメッセージ」を見破る力を養いましょう！
+一見すると普通の文章に見えても、実は巧妙に隠された「本当のメッセージ」が潜んでいることがあります。このツールでは、そんな隠されたメッセージを見破るスキルを段階的に身につけることができます。
+
+**4つの異なる暗号方式**による計20問のチャレンジを通じて、「行頭読み」「除去文字」「位置抽出」「ステンシル」といった古典的な情報隠蔽技術を体験できます。
+各問題には段階的なヒント機能が用意されており、初心者から中級者まで楽しみながら学習を進められます。
+
+進捗は自動的に保存され、最終的にはレーダーチャートによる成果分析とランク判定で、あなたの「隠されたメッセージを見抜く力」を評価します。
+現代のサイバーセキュリティにも通じる「気づき」の感覚を、歴史ある暗号技術を通じて養いましょう！
 
 ---
 
@@ -53,7 +71,7 @@
 
 - 数学的処理や複雑な鍵を必要としない
 - 多くの方式が **簡単なルールに基づく**
-  - 平文に冗字（無意味な文字）を挿入する仕組みである、挿入法（insertion）が採用されている。そのため、null cipherとも呼ばれる。
+  - 平文に冗字（無意味な文字）を挿入する仕組みである、挿入法（insertion）が採用されている。そのため、Null暗号（null cipher）とも呼ばれる。
   - ただし復号時に冗字を取り除くルールが必要。
 - 書籍、日記、絵、文字列など、さまざまな媒体に応用可能
 
@@ -144,6 +162,53 @@
 
 ---
 
+## 🎯 活用シナリオ
+
+### 📚 シナリオ1: 教育機関での情報セキュリティ授業
+
+**設定**: 高校の情報科「情報セキュリティ」単元（50分授業）
+
+**実施例**:
+- **導入10分**: 分置式暗号の歴史的背景を説明（スパイ通信、戦時中の暗号）
+- **体験30分**: 4つのチャレンジをグループ単位で挑戦（2-3人1組）
+- **振り返り10分**: 各グループの成果をレーダーチャートで比較・発表
+
+**教育効果**: 「隠された情報の発見」体験を通じて、現代のフィッシング詐欺やソーシャルエンジニアリングに対する**気づき力**を養成
+
+---
+
+### 🏢 シナリオ2: 企業セキュリティ研修・チームビルディング
+
+**設定**: IT企業の新入社員研修（午後の部・2時間）
+
+**実施例**:
+- **アイスブレイク**: チーム対抗戦形式で「行頭読み」から開始
+- **スキルアップ**: 段階的に難易度を上げ、チーム内での相談・協力を促進
+- **成果共有**: 各チームのランク結果をSlackで共有、優秀チームを表彰
+
+**研修効果**:
+- セキュリティにおける**「見落とし」の危険性**を体験的に理解
+- チーム内コミュニケーションの促進
+- 「小さな違和感に気づく重要性」をゲーム感覚で学習
+
+---
+
+### 🎮 シナリオ3: 個人学習・趣味としての暗号チャレンジ
+
+**設定**: 暗号・パズル好きの社会人の隙間時間学習
+
+**実施例**:
+- **通勤時間**: スマートフォンで1日1-2問ずつ進行（1問5-10分）
+- **週末まとめ**: 進捗をレーダーチャートで確認、苦手分野を重点的に復習
+- **SNS共有**: TwitterでランクSを達成した画像を投稿、暗号愛好家コミュニティと交流
+
+**学習効果**:
+- **継続的なスキルアップ**: 自分のペースで着実に「気づき力」を向上
+- **知的好奇心の満足**: 古典暗号の奥深さを段階的に体験
+- **コミュニティ参加**: 共通の趣味を持つ人との繋がり形成
+
+---
+
 ## 📁 ディレクトリー構成
 
 ```
@@ -162,17 +227,20 @@ hidden-message-challenge/
 │   │   ├── utils.js              # 共通ユーティリティ関数
 │   │   ├── storage.js            # LocalStorage管理
 │   │   └── dataLoader.js         # チャレンジデータ読み込み
+│   ├── data/
+│   │   └── challenges.json       # チャレンジ問題データ（全20問）
 │   └── results/
 │       ├── score.js              # スコア計算・管理
 │       ├── chart.js              # レーダーチャート描画
 │       └── share.js              # 共有機能（Twitter・画像保存）
-├── data/
-│   └── challenges.json           # チャレンジ問題データ
 ├── assets/
-│   └── screenshot.png            # スクリーンショット画像  
+│   └── screenshot.png            # スクリーンショット画像
 ├── README.md                     # このファイル
+├── CLAUDE.md                     # Claude Code向けプロジェクト情報
+├── TECHNICAL_NOTES.md            # 開発者向け技術詳細ドキュメント
 ├── LICENSE                       # ライセンス情報（MIT）
-└── .gitignore                    # Gitで管理しないファイル指定
+├── .gitignore                    # Gitで管理しないファイル指定
+└── .nojekyll                     # GitHub Pages用設定ファイル
 ```
 
 ---
@@ -239,7 +307,11 @@ hidden-message-challenge/
 
 ## 🔗 関連リソース
 
-### 🛠️ ツール
+### 📋 開発者向けドキュメント
+
+- [TECHNICAL_NOTES.md](TECHNICAL_NOTES.md) - 複雑な処理、技巧的な実装、コアアルゴリズムの技術詳細
+
+### 🛠️ 自作ツール
 
 - [Grille CipherLab](https://github.com/ipusiron/grille-cipherlab)…回転グリル暗号の可視化ツール
 
