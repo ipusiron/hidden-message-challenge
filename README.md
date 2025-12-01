@@ -1,11 +1,40 @@
 <!--
 ---
-title: Hidden Message Challenge
-category: classical-cryptography
-difficulty: 1
-description: Hands-on concealment cipher training app. Learn to spot hidden messages in natural-looking texts through interactive challenges.
-tags: [concealment-cipher, steganography, classical, training, puzzle]
-demo: https://ipusiron.github.io/hidden-message-challenge/
+id: day036
+slug: hidden-message-challenge
+
+title: "Hidden Message Challenge"
+
+subtitle_ja: "分置式暗号文解読チャレンジツール"
+subtitle_en: "Concealment Cipher Decryption Challenge Tool"
+
+description_ja: "分置式暗号の仕組みを楽しく学べるチャレンジ型Webツール。行頭読み・除去文字・位置抽出・ステンシルの4方式で隠されたメッセージを見破るスキルを身につける。"
+description_en: "Interactive web tool for learning concealment ciphers. Master 4 cipher techniques—acrostic, character removal, position extraction, and stencil—through 20 progressive challenges."
+
+category_ja:
+  - 古典暗号
+  - ステガノグラフィー
+  - 分置式暗号
+category_en:
+  - Classical Cryptography
+  - Steganography
+  - concealment-cipher
+
+difficulty: 2
+
+tags:
+  - concealment-cipher
+  - steganography
+  - acrostic
+  - null-cipher
+  - stencil
+  - puzzle
+  - training
+
+repo_url: "https://github.com/ipusiron/hidden-message-challenge"
+demo_url: "https://ipusiron.github.io/hidden-message-challenge/"
+
+hub: true
 ---
 -->
 

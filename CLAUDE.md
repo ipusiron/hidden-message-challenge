@@ -4,72 +4,74 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Hidden Message Challenge is a web-based educational tool for learning about concealment ciphers (分置式暗号). The project is part of the "100 Security Tools with Generative AI" initiative.
+Hidden Message Challenge is a web-based educational tool for learning about concealment ciphers (分置式暗号). The project is part of the "100 Security Tools with Generative AI" initiative (Day 036).
 
-## Running and Testing
+## Running the Application
 
-This is a pure HTML/CSS/JavaScript application with no build process. To run:
+Pure HTML/CSS/JavaScript with ES6 modules - no build process required.
 
 ```bash
-# Simple HTTP server (Python 3)
+# Start local server (required for ES6 modules)
 python -m http.server 8000
-
-# Or open index.html directly in a browser
 ```
 
-Access at `http://localhost:8000` or by opening `index.html` directly.
+Access at `http://localhost:8000`. Note: Opening `index.html` directly may fail due to CORS restrictions on ES6 module imports.
 
-## Project Architecture
+## Architecture Overview
 
-### Core Structure
-- `index.html` - Main HTML file with 5-tab UI (4 challenges + results)
-- `css/style.css` - Common styles with responsive design
-- `js/main.js` - Main application controller and tab management
-- `js/data/challenges.json` - All challenge problem data (20 problems total)
+### Entry Point Flow
+1. `index.html` loads `js/main.js` as ES6 module
+2. `HiddenMessageChallenge` class initializes on DOMContentLoaded
+3. Challenge classes are instantiated but data is lazy-loaded on tab switch
+4. Progress persists via LocalStorage with `hiddenMessage_` prefix
 
-### Module Organization
+### Module Dependencies
 ```
-js/
-├── main.js                    # Main app controller, tab switching, initialization
-├── challenges/                # Individual challenge implementations
-│   ├── headline.js           # 行頭読み (headline reading) - extract first character of each line
-│   ├── removeChar.js         # 除去文字 (character removal) - remove specific characters
-│   ├── position.js           # 位置抽出 (position extraction) - extract at specific positions
-│   └── stencil.js            # ステンシル (stencil) - visual overlay method
-├── common/                   # Shared utilities
-│   ├── utils.js              # Common utility functions
-│   ├── storage.js            # LocalStorage management for progress
-│   └── dataLoader.js         # JSON data loading and caching
-└── results/                  # Results and scoring system
-    ├── score.js              # Progress tracking and score calculation
-    ├── chart.js              # Radar chart visualization
-    └── share.js              # Social sharing functionality
+main.js
+├── challenges/*.js     → Each implements: loadChallenge(), checkAnswer(), showHint(), nextChallenge(), reset()
+├── common/storage.js   → Storage class wraps LocalStorage with JSON serialization
+├── common/dataLoader.js → Singleton pattern, caches challenges.json
+└── results/score.js    → ResultsManager aggregates scores from all challenges
 ```
 
-### Data Architecture
-- **Challenge Data**: Located in `js/data/challenges.json` with 5 problems per cipher type
-- **Progress Storage**: Uses LocalStorage to persist user progress across sessions
-- **State Management**: Each challenge class manages its own state independently
+### Challenge Class Interface
+All challenge classes share a common interface:
+- `loadChallenge()` - Load current problem and render UI
+- `checkAnswer()` - Validate user input against normalized answer
+- `showHint()` - Display progressive hints
+- `nextChallenge()` - Advance to next problem
+- `setProgress(data)` / `reset()` - Progress state management
 
-### UI Architecture
-- **Tab System**: 5 tabs (4 challenge types + results) with dynamic content loading
-- **Progress Tracking**: Visual dots showing completion status (green=correct, red=incorrect, blue=current)
-- **Hint System**: Multi-level hints available for each problem
-- **Results Dashboard**: Radar chart, scoring, and social sharing features
+### Answer Normalization
+User answers undergo normalization before comparison:
+- Trim whitespace
+- Convert to lowercase
+- Remove long vowel marks (ー)
+- Convert katakana to hiragana (Unicode offset: 0x60)
 
-## Implementation Details
+### Stencil Challenge Specifics
+The stencil challenge uses a two-layer system:
+- Base layer: 5x5 character grid (44px cells)
+- Overlay layer: Draggable/rotatable stencil with `pointerEvents: 'none'`
+- Transform: `translate(-50%, -50%) translate(x*44px, y*44px) rotate(deg)`
 
-### Challenge Types Implemented
-1. **行頭読み (Headline)** - Read first character of each line
-2. **除去文字 (Remove Char)** - Remove characters based on wordplay hints
-3. **位置抽出 (Position)** - Extract characters at specific positions
-4. **ステンシル (Stencil)** - Interactive visual overlay with drag/rotate functionality
+### Data Format (`js/data/challenges.json`)
+```javascript
+{
+  "headline": [{ id, text, answer, hint }],           // Line-break separated text
+  "removeChar": [{ id, cipher, hint, removeChars, answer }],
+  "position": [{ id, text, rule, answer, hint }],
+  "stencil": [{ id, grid[][], stencil[][], answer, hint }]  // grid: chars, stencil: 0/1 mask
+}
+```
 
-### Key Classes
-- `HiddenMessageChallenge` - Main application controller
-- `HeadlineChallenge`, `RemoveCharChallenge`, `PositionChallenge`, `StencilChallenge` - Individual challenge implementations
-- `Storage` - LocalStorage abstraction for progress persistence
-- `ResultsManager` - Scoring and results calculation
+## Key Implementation Notes
 
-### Security Focus
-This is a defensive security educational tool. The concealment cipher challenges are designed to teach cryptographic concepts, not to enable malicious activities.
+- **XSS Prevention**: Uses `textContent` instead of `innerHTML` for user-facing content
+- **Event Delegation**: Global click handler on document for dynamic progress dots
+- **Radar Chart**: Canvas-based, uses polar coordinate conversion with 12 o'clock as origin
+- **LocalStorage Keys**: `hiddenMessage_{challengeName}_{dataType}`
+
+## Related Documentation
+
+- `TECHNICAL_NOTES.md` - Detailed algorithm explanations (stencil transforms, radar chart math, Unicode handling)
