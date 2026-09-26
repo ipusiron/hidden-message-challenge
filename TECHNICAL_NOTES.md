@@ -1,224 +1,89 @@
 # Technical Implementation Notes
 
-本ドキュメントは、Hidden Message Challenge の複雑な処理、技巧的な実装、コアアルゴリズムなど、開発者が理解しておくべき技術的詳細をまとめています。
+本ドキュメントは、Hidden Message Challenge の処理の考え方と、実装で決めたことをまとめています。
+2026年9月の書き直しで構成が変わったため、以前の版（ES module・二重レイヤーの型紙・問題ごとのクラス）の説明は削除しました。
 
-## 🎭 ステンシル機能の複雑な実装
+## 🧩 1つの中核で「答え合わせ」「ヒント」「テスト」をまかなう
 
-### 二重レイヤーシステム
-ステンシル機能では、視覚的なオーバーレイ効果を実現するために独立した二重レイヤーシステムを採用：
+4方式の読み取りは`js/hidden-core.js`の純粋な関数です。DOMも保存領域も使いません。
 
-```javascript
-// 背景レイヤー（暗号文グリッド）
-const baseGrid = document.createElement('div');
-baseGrid.style.zIndex = '1';
+| 関数 | 入力 | 出力 |
+|------|------|------|
+| `acrostic(text)` | 改行区切りの文 | 各行の最初の文字と、その位置（行・列） |
+| `removeChars(cipher, chars)` | 暗号文と取り除く文字 | 残りの文と、取り除いた位置 |
+| `applyRule(text, rule)` | 文とルール | 読み取った文と、読んだ位置 |
+| `visible(grid, mask, { rotation, dx, dy })` | 文字の表・型紙・回転とずれ | 穴の下の文字（上の行から順）と、そのマス |
 
-// 前景レイヤー（ステンシルオーバーレイ）
-const stencilOverlay = document.createElement('div');
-stencilOverlay.style.zIndex = '2';
-stencilOverlay.style.pointerEvents = 'none';
+出力に「位置」を含めるのが要点です。画面はこの位置で色を付け（ヒント2・正解後の解説）、テストは同じ関数で読み取った文が答えと一致するかを確かめます。
+以前の版は、ルールの文面を`includes('句読点の3文字後')`のように文字列で判定して色付けしていたため、問題文を直したときに分岐が外れ、暗号文が消える不具合が起きていました。
+
+## 📐 位置抽出のルールは構造で持つ
+
+ルールは文面ではなく、次のようなデータで持ちます。
+
+```js
+{ kind: 'mark', marks: ['、', '。'], offset: 3 }                       // 目印から数えて3文字目
+{ kind: 'segments', separator: '　', order: 'firstLast', stripDakuten: true }   // 沓冠
 ```
 
-**技術的ポイント:**
-- `pointerEvents: 'none'` により、オーバーレイが下層のクリックイベントを阻害しない
-- 各セルは44px固定サイズで、位置計算の一貫性を保つ
-- `transformOrigin: 'center center'` により、回転の中心点を固定
+画面に出すルールの文面（日英）は、このデータから`js/challenges.js`の`ruleText()`が組み立てます。
+文面と答えの計算が同じデータから出るので、両者が食い違うことはありません。
 
-### 座標変換とマトリクス計算
-ステンシルの移動・回転では、複雑な座標変換を実装：
+`offset`は -1（直前）と1以上（直後・n文字目）だけを使います。これ以外の値は文面を用意していないため、`test/data.test.js`が拒否します。
 
-```javascript
-// 回転と平行移動を組み合わせたCSS transform
-stencilOverlay.style.transform =
-    `translate(-50%, -50%) translate(${this.stencilPosition.x * 44}px, ${this.stencilPosition.y * 44}px) rotate(${this.rotation}deg)`;
+漢字を含む和歌（沓冠の問題）は、かなの読み`reading`に対してルールを適用します。読みは1つ目のヒントで表示します。
+
+## 🎭 型紙のモデル
+
+以前の版は、文字の表と型紙を2枚の要素として重ね、CSS の`transform`で型紙を回転・移動していました。
+CSP で`style`の書き込みを禁じたため、今の版は表の各マスに「型紙の外」「覆われている」「穴」のどれかをクラスで付けるだけにしています。
+
+- 型紙（5×5の0と1）を時計回りに`rotation`回、90度ずつ回す
+- 表のマス(y, x)に対応する型紙のマスは(y − dy, x − dx)。範囲外なら型紙の外で、文字がそのまま見える
+- 覆われているマスは文字を表示しない。穴のマスだけ文字を強調する
+- 型紙の元の左上の角が、回転後にどこへ行くかを小さな三角で示す（回した向きが分かるように）
+
+型紙は最初、右に1・上に1ずらして置きます。ずれを直して重ねることも、パズルの一部です。
+
+アナグラムの問題（回してから並べ替える）は、見えた文字と答えの文字が同じか（小さい「っ」は「つ」と同じに扱う）をテストで確かめます。
+
+## 🔤 答えの比較
+
+`normalize()`は次の順に処理します。
+
+1. `String.prototype.normalize('NFKC')`（半角カナ・全角英数を揃える）
+2. 空白を取る
+3. カタカナ（U+30A1〜U+30F6）をひらがなへ（コードポイントを0x60引く）
+4. 小文字にし、長音符「ー」を取る
+
+濁点は区別します。昔の仮名は濁点を書かないので「かきつはた」と「かきつばた」の両方を正解にしたい、といった場合は、問題データの`answers`に並べます。
+テストは、2つ目以降の答えが1つ目と「濁点を除けば同じ」か「漢字を読みにしただけ」であることを確かめます。
+
+## 💾 進捗の保存
+
+localStorage のキーは`hidden-message-challenge-progress`の1つだけで、値は次の形のJSONです。
+
+```json
+{ "headline": { "current": 2, "solved": [0, 1], "missed": [3] }, "removeChar": { ... }, ... }
 ```
 
-**アルゴリズムの詳細:**
-1. 初期位置を中央に設定 (`translate(-50%, -50%)`)
-2. グリッド単位での微調整 (`translate(x*44px, y*44px)`)
-3. 中心点での回転変換 (`rotate(deg)`)
+- 読むときは`Progress.parse()`で検査し、範囲外・重複・整数でない値を捨てる。壊れたJSONは空の状態に戻す
+- 正解すると`missed`から外す。正解済みの問題に不正解を出しても記録は変えない
+- localStorage が使えない環境（プライベートモードの一部など）では、保存せずに動く
 
-## 📊 レーダーチャート描画の数学的実装
+以前の版は、各タブが保存領域を読む処理と、成果タブが読む処理が別々で、リロードするとタブ側の表示だけが0に戻っていました。今は`Store`（`js/main.js`）の1か所から読みます。
 
-### 極座標系による描画
-Canvas上でのレーダーチャートは、極座標系の数学的変換を活用：
+## 📊 レーダーチャート
 
-```javascript
-const angleStep = (Math.PI * 2) / data.length;  // 各軸の角度間隔
+4本の軸を12時の方向から時計回りに置き、各軸の長さを正答率（0〜100%）で決めます。
+点の座標は`(cx + r·cos θ, cy + r·sin θ)`、θ = −π/2 + i·2π/4 です。
+キャンバスには`role="img"`と、各方式の正答率を並べた`aria-label`を付けています。
 
-// 極座標から直交座標への変換
-const angle = angleStep * i - Math.PI / 2;      // 12時方向を0度とする
-const x = this.centerX + Math.cos(angle) * levelRadius;
-const y = this.centerY + Math.sin(angle) * levelRadius;
-```
+結果の画像保存は、1200×630のキャンバスにチャートと数値を描き、`toDataURL()`でダウンロードします。
 
-**数学的概念:**
-- `Math.PI / 2` のオフセットにより、12時方向（上）を起点に設定
-- `Math.cos(angle)` でX座標、`Math.sin(angle)` でY座標を計算
-- 5段階のレベル表示で視覚的な評価軸を提供
+## 🔒 セキュリティ
 
-### グリッド描画の最適化
-同心円と放射線を効率的に描画するアルゴリズム：
-
-```javascript
-// 同心円の描画（5レベル）
-for (let level = 1; level <= this.levels; level++) {
-    const levelRadius = (this.radius / this.levels) * level;
-    // 各レベルでの円周描画
-}
-
-// 軸線の描画（データ数に応じて動的）
-for (let i = 0; i < dataCount; i++) {
-    // 中心から外周への直線描画
-}
-```
-
-## 🧮 文字列処理の高度なアルゴリズム
-
-### Unicode範囲を活用したひらがな・カタカナ変換
-日本語特有の文字変換を効率的に実装：
-
-```javascript
-// ひらがな → カタカナ変換
-hiraganaToKatakana(str) {
-    return str.replace(/[\u3041-\u3096]/g, (match) => {
-        const chr = match.charCodeAt(0) + 0x60;  // Unicode値+96
-        return String.fromCharCode(chr);
-    });
-}
-```
-
-**技術的詳細:**
-- `\u3041-\u3096`: ひらがなのUnicode範囲
-- `0x60` (96): ひらがな・カタカナ間のUnicodeオフセット
-- 正規表現による一括変換で高いパフォーマンスを実現
-
-### 入力正規化の多段階処理
-ユーザー入力の柔軟な受け入れを実現：
-
-```javascript
-normalizeString(str) {
-    return str
-        .trim()                    // 前後空白除去
-        .toLowerCase()             // 小文字統一
-        .replace(/[ー]/g, '')      // 長音符除去
-        .replace(/\s/g, '');       // 全空白文字除去
-}
-```
-
-## 💾 状態管理の設計パターン
-
-### LocalStorage抽象化レイヤー
-データ永続化の一貫性を保つため、Storageクラスで抽象化：
-
-```javascript
-// キー命名規則の統一化
-const key = `${this.prefix}${challengeName}_${dataType}`;
-
-// JSONシリアライゼーションの自動化
-saveProgress(challengeName, data) {
-    localStorage.setItem(key, JSON.stringify(data));
-}
-```
-
-**設計思想:**
-- プレフィックス `hiddenMessage_` による名前空間の分離
-- 自動JSON変換によるオブジェクト保存の簡素化
-- 型安全性を保つためのnullチェック
-
-### 進捗状態の複合データ構造
-各チャレンジの進捗を効率的に管理：
-
-```javascript
-// 完了問題と不正解問題を独立して管理
-const completedProblems = [];    // [0, 2, 4] - インデックス配列
-const incorrectProblems = [];    // [1, 3] - 失敗したインデックス
-
-// 三状態システム: 未回答・正解・不正解
-const statusClass = isCompleted ? 'completed' :
-                   isIncorrect ? 'incorrect' : 'pending';
-```
-
-## 🎨 動的UI生成の技術パターン
-
-### プログレスドット生成の柔軟性
-配列型と数値型の両パラメーターに対応する汎用関数：
-
-```javascript
-createProgressDots(completedParam, total, challengeName = '', currentIndex = 0, incorrectIndices = []) {
-    // 型判定による分岐処理
-    const completedIndices = Array.isArray(completedParam) ? completedParam : [];
-    const isCompleted = Array.isArray(completedParam) ?
-        completedIndices.includes(i) :
-        i < completedCount;
-}
-```
-
-**設計の利点:**
-- 結果表示（配列）と進行中表示（数値）の両方に対応
-- クリック可能/不可能の状態を動的制御
-- HTMLテンプレート生成による高速描画
-
-### イベント委譲パターン
-大量の動的要素に対する効率的なイベント管理：
-
-```javascript
-// 親要素で一括してイベントを捕捉
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('progress-dot') && e.target.dataset.challenge) {
-        const challengeName = e.target.dataset.challenge;
-        const index = parseInt(e.target.dataset.index);
-        // 動的生成された要素のクリック処理
-    }
-});
-```
-
-## ⚡ パフォーマンス最適化
-
-### データ遅延読み込み
-大容量のチャレンジデータを効率的に管理：
-
-```javascript
-// 初回アクセス時のみデータ読み込み
-async loadProgress() {
-    if (!this.dataLoaded) {
-        const challengeData = await dataLoader.loadChallengeData();
-        this.challenges = challengeData.headline;
-        this.dataLoaded = true;
-    }
-}
-```
-
-### Canvas描画の最適化
-レーダーチャートの高速描画技術：
-
-```javascript
-// 描画前のクリアと座標計算の最適化
-this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-const angleStep = (Math.PI * 2) / data.length;  // 事前計算
-```
-
-## 🔒 セキュリティ考慮事項
-
-### XSS対策
-動的なHTML生成における安全性確保：
-
-```javascript
-// textContentによる安全な文字設定
-td.textContent = char;  // innerHTML ではなく textContent を使用
-
-// dataset による安全な属性設定
-td.dataset.x = x;
-td.dataset.y = y;
-```
-
-### 入力検証
-ユーザー入力の適切な処理：
-
-```javascript
-// 正規化による統一化（XSS防止効果も含む）
-const normalizedUser = this.normalizeString(this.katakanaToHiragana(userAnswer));
-```
-
----
-
-これらの技術的詳細は、本ツールの教育的価値と高いユーザー体験を支える重要な実装基盤となっています。
+- CSP は`default-src 'none'; script-src 'self'; style-src 'self'`。インラインのスクリプト・スタイル・イベントハンドラーを使わない
+- 表示はすべて`createElement`と`textContent`で組み立てる。`innerHTML`は使わない（`test/html.test.js`で禁止）
+- X での共有はリンク（`target="_blank" rel="noopener noreferrer"`）で開き、`window.open`は使わない
+- 答えは問題データに平文で入っている。自習用の教材なので、隠していない
