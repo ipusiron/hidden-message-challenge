@@ -10,9 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const current = () => Progress.summary(Store.state, Store.sizes, HiddenCore.rank);
   const kindName = kind => I18n.t(`tab.${kind}`);
 
-  // Four axes starting at 12 o'clock, clockwise
+  // Four axes starting at 12 o'clock, clockwise. The chart leaves room around it for the labels.
   function drawRadar(ctx, size, summary) {
-    const cx = size / 2, cy = size / 2, radius = size * 0.32;
+    const cx = size / 2, cy = size / 2, radius = size * 0.26;
     const point = (i, r) => {
       const angle = -Math.PI / 2 + (i * 2 * Math.PI) / Progress.KINDS.length;
       return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
@@ -37,13 +37,22 @@ document.addEventListener('DOMContentLoaded', () => {
     polygon(radius, Progress.KINDS.map(kind => summary.perKind[kind].percent));
     ctx.fillStyle = COLORS.fill; ctx.fill();
     ctx.strokeStyle = COLORS.line; ctx.lineWidth = 2; ctx.stroke();
+    // Labels: the name, then the percentage on a second line. The top and bottom labels are centred above and below
+    // their axis; the side labels grow outward from it and are kept inside the canvas even with a wider font.
+    const font = Math.round(size / 26), line = font * 1.2, margin = 4;
     ctx.fillStyle = COLORS.text;
-    ctx.font = `bold ${Math.round(size / 26)}px sans-serif`;
-    ctx.textAlign = 'center';
+    ctx.font = `bold ${font}px sans-serif`;
     ctx.textBaseline = 'middle';
     Progress.KINDS.forEach((kind, i) => {
-      const [x, y] = point(i, radius + size * 0.1);
-      ctx.fillText(`${kindName(kind)} ${summary.perKind[kind].percent}%`, x, y);
+      const lines = [kindName(kind), `${summary.perKind[kind].percent}%`];
+      const width = Math.max(...lines.map(text => ctx.measureText(text).width));
+      let [x, y] = point(i, radius + size * 0.04);
+      if (x < cx - 1) x = Math.max(x, width + margin);
+      if (x > cx + 1) x = Math.min(x, size - width - margin);
+      ctx.textAlign = x < cx - 1 ? 'right' : x > cx + 1 ? 'left' : 'center';
+      if (y < cy - 1) y -= line;
+      else if (Math.abs(y - cy) <= 1) y -= line / 2;
+      lines.forEach((text, n) => ctx.fillText(text, x, y + n * line));
     });
   }
 
@@ -56,14 +65,15 @@ document.addEventListener('DOMContentLoaded', () => {
     $('kind-scores').replaceChildren(...Progress.KINDS.map(kind => {
       const item = document.createElement('li');
       const k = summary.perKind[kind];
-      item.textContent = `${kindName(kind)}: ${I18n.t('common.count', { solved: k.solved, total: k.total })} (${k.percent}%)`;
+      const count = I18n.t('common.count', { solved: k.solved, total: k.total });
+      item.textContent = I18n.t('results.kindScore', { name: kindName(kind), count, percent: k.percent });
       return item;
     }));
     $('results-total').textContent = I18n.t('results.total', summary);
     $('results-rank').textContent = I18n.t('results.rank', { rank: summary.rank, title: I18n.t(`rank.${summary.rank}`) });
     const setName = I18n.t(`set.${Store.set}`);
     const params = new URLSearchParams({ text: I18n.t('results.shareText', { ...summary, set: setName }), url: PAGE_URL });
-    $('share-x').href = `https://twitter.com/intent/tweet?${params}`;
+    $('share-x').href = `https://x.com/intent/post?${params}`;
   }
 
   // A 1200 x 630 summary image (the usual size for link previews)
@@ -90,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.font = '28px sans-serif';
     Progress.KINDS.forEach((kind, i) => {
       const k = summary.perKind[kind];
-      ctx.fillText(`${kindName(kind)}: ${k.solved}/${k.total} (${k.percent}%)`, 580, 230 + i * 56);
+      ctx.fillText(I18n.t('results.kindScore', { name: kindName(kind), count: `${k.solved}/${k.total}`, percent: k.percent }), 580, 230 + i * 56);
     });
     ctx.font = 'bold 32px sans-serif';
     ctx.fillText(I18n.t('results.total', summary), 580, 480);

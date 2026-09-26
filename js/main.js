@@ -91,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     setSwitch.hidden = tab.dataset.tab === 'maker';          // the maker does not use the puzzle sets
     if (focus) tab.focus();
-    document.dispatchEvent(new CustomEvent('tabchange', { detail: tab.dataset.tab }));
   }
 
   tabs.forEach((tab, index) => {

@@ -54,6 +54,13 @@ test('scripts avoid innerHTML, style writes, dialogs from window and network acc
   }
 });
 
+test('the share link goes to the same X address in the markup and the script', () => {
+  const results = jsFiles.find(([f]) => f === 'results.js')[1];
+  assert.match(html, /id="share-x"[^>]*href="https:\/\/x\.com\/intent\/post"/);
+  assert.ok(results.includes('https://x.com/intent/post?'));
+  for (const src of [html, ...jsFiles.map(([, s]) => s)]) assert.ok(!src.includes('twitter.com'));
+});
+
 test('the core, data and progress do not use the DOM', () => {
   for (const name of ['hidden-core.js', 'hidden-data.js', 'progress.js']) {
     const src = jsFiles.find(([f]) => f === name)[1];
