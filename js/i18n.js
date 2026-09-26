@@ -254,9 +254,9 @@ const I18n = (() => {
     'hint.ep5': '王党派のジョン・トレヴァニオン卿に宛てた手紙とされる文です。句読点やダッシュのあと、3番目の英字を読みます。',
     'explain.ep5': '「PANEL AT EAST END OF CHAPEL SLIDES」（礼拝堂の東の端の羽目板が動く）。1863年の雑誌記事が初出で、実在のジョン・トレヴァニオンは1643年に戦死したとされ、1648年の話とは年が合わないため、史実とは考えにくい話です。',
     'source.ep5': '出典: S・ベアリング＝グールド『Curiosities of Olden Times』（1896年改訂版。初出は1863年の雑誌「Once a Week」）',
-    'maker.stencil.standsOut': '穴の文字「{chars}」と同じ種類の文字が、ほかのマスにありません。型紙がなくても目立ちます（ひらがな・カタカナ・英字をそろえ、数字や記号、小さい文字は避けましょう）。',
+    'maker.stencil.standsOut': '「{chars}」は埋め草に使わない文字なので、型紙がなくても目立ちます。ひらがな・カタカナ・英字のどれかにそろえ、小さい仮名・長音符・数字・記号・絵文字は避けましょう。',
     'maker.acrostic.skipped': '「{chars}」は行の頭にならないので、飛ばして数えています。',
-    'maker.removal.invisible': '混ぜる文字に、単独では見えない文字（{chars}）が入っています。前の文字にくっついて見えなくなるので使えません。'
+    'maker.removal.invisible': '混ぜる文字に、単独では見えない文字や、前後の文字とつながる文字（{chars}）が入っています。読み戻せなくなるので使えません。'
   };
 
   const en = {
@@ -539,12 +539,12 @@ const I18n = (() => {
       ' killed in 1643, which does not fit a story set in 1648, so it is unlikely to be history.',
     'source.ep5': 'Source: S. Baring-Gould, Curiosities of Olden Times (rev. ed. 1896; first printed in Once a Week, 1863)',
     'maker.stencil.standsOut':
-      'No other cell has the same kind of character as "{chars}", so it stands out even without the stencil. Keep to one script and avoid digits,' +
-      ' symbols and small kana.',
+      '"{chars}" never appears as filler, so it stands out even without the stencil. Keep to hiragana, katakana or letters, and avoid small kana,' +
+      ' the long vowel mark, digits, symbols and emoji.',
     'maker.acrostic.skipped': '"{chars}" cannot start a line, so it is skipped.',
     'maker.removal.invisible':
-      'The filler includes characters that are invisible on their own ({chars}). They would attach to the previous character, so they cannot be' +
-      ' used.'
+      'The filler includes characters that are invisible on their own or join the characters around them ({chars}). The cipher could not be read' +
+      ' back, so they cannot be used.'
   };
 
   let language = 'ja';

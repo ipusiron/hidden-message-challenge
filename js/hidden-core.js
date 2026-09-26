@@ -46,7 +46,7 @@ const HiddenCore = (() => {
   // ---------- Character removal ----------
   // Matching ignores case, width and katakana/hiragana (b removes B; typing the letter as shown is not required).
   // A character that normalizes to nothing (the long vowel mark) is matched as itself
-  const matchKey = ch => normalize(ch) || ch;
+  const matchKey = ch => normalize(ch) || String(ch).normalize('NFKC');      // NFKC still folds the half-width ｰ into ー
 
   // Characters as people see them: NFC, with combining marks, variation selectors and joined sequences kept on their base
   function units(text) {
@@ -205,7 +205,9 @@ const HiddenCore = (() => {
   // Line heads: small kana count as full size, as in the puzzles' readings
   const sameHead = (a, b) => [...normalize(a)].map(fullSize).join('') === [...normalize(b)].map(fullSize).join('');
   // A filler that is only a combining mark or variation selector would be invisible or join the character before it
-  const invisible = unit => /^\p{M}+$/u.test(unit);
+  // Also format characters (zero-width space, soft hyphen, tag characters), and a unit ending in a zero-width joiner,
+  // which would fuse with the next character of the cipher
+  const invisible = unit => unit.replace(/[\p{M}\p{Cf}\s]/gu, '') === '' || unit.endsWith(String.fromCharCode(0x200d));
 
   // Full-size kana from `from` to `to` (katakana sit 0x60 above hiragana), without wi and we
   const kanaRange = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => String.fromCharCode(from + i))

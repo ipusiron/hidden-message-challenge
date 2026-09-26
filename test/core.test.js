@@ -178,6 +178,16 @@ test('units: marks, variation selectors and the long vowel mark', () => {
     assert.deepEqual(C.removalReport('meet', [lone], '').map(f => f.key), ['maker.removal.invisible']);
     assert.ok(![...C.makeRemoval('meet', ['x', lone], { rate: 1, rand: C.rng(1) })].includes(lone), 'never inserted');
   }
+  // format characters and a trailing zero-width joiner are rejected as fillers
+  const zwj = String.fromCharCode(0x200d);
+  const fillers = [zwj, '👨' + zwj, String.fromCharCode(0x200b), String.fromCharCode(0x00ad), String.fromCodePoint(0xe0067),
+    ' ' + String.fromCharCode(0x3099)];
+  for (const filler of fillers) {
+    assert.deepEqual(C.removalReport('meet', [filler], '').map(f => f.key), ['maker.removal.invisible'], JSON.stringify(filler));
+    assert.equal(C.removeChars(C.makeRemoval('meet', ['x', filler], { rate: 1, rand: C.rng(3) }), ['x']).plain, 'meet', 'never inserted');
+  }
+  assert.equal(C.removeChars('すｰし', ['ー']).plain, 'すし', 'full and half width long vowel marks match');
+  assert.deepEqual(C.removalReport('コーヒー', ['ｰ'], '').map(f => f.key), ['maker.removal.clash']);
   for (const [msg, chars] of [['ヵヶ', 'ヵ ヶ'], ['ゐ', 'ゐ'], ['a' + eye + 'b', eye]]) {
     const report = C.stencilReport(msg, C.makeStencil(msg, { rand: C.rng(2) }));
     assert.deepEqual(report.find(f => f.key.endsWith('standsOut')).values, { chars }, msg);

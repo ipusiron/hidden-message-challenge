@@ -98,10 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const rows = result ? [...result.grid.map(row => row.join('')), '', ...result.mask.map(row => row.map(h => (h ? '■' : '□')).join(''))] : [];
       made = { method: 'stencil', grid: result, findings, text: rows.join('\n') };
     }
-    render();
+    render(true);            // a new result is announced even when its summary is the same as before
   }
 
-  function render() {
+  function render(fromGenerate = false) {
     const m = method();
     new Set(Object.values(BLOCKS).flat()).forEach(id => { $(id).hidden = !BLOCKS[m].includes(id); });
     $('maker-output-label').textContent = I18n.t(m === 'stencil' ? 'maker.outputStencil' : 'maker.output');
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     output.rows = Math.max(3, output.value.split('\n').length);        // the stencil text is 11 lines
     renderGrid(current && m === 'stencil' ? current.grid : null);
     renderFindings(current ? current.findings : []);
-    announce(current ? mostSevere(current.findings) : null);
+    announce(current ? mostSevere(current.findings) : null, fromGenerate);
   }
 
   generate.addEventListener('click', () => {
