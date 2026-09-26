@@ -34,36 +34,87 @@ const HiddenCore = (() => {
   }
 
   // ---------- Acrostic ----------
-  // Returns the first character of each line with its position (line, column) for highlighting.
+  // Returns the first letter of each line with its position (line, column) for highlighting.
+  // Leading quotes and other symbols are skipped ("Love not" counts as L).
   function acrostic(text) {
     return text.split('\n').map((line, row) => {
-      const col = line.search(/\S/);
-      return { row, col, char: col >= 0 ? line[col] : '' };
+      const m = line.match(/\p{L}/u);                   // a whole code point, also outside the BMP
+      return { row, col: m ? m.index : -1, char: m ? m[0] : '' };
     }).filter(p => p.char !== '');
   }
 
   // ---------- Character removal ----------
+  // Matching ignores case, width and katakana/hiragana (b removes B; typing the letter as shown is not required).
+  // A character that normalizes to nothing (the long vowel mark) is matched as itself
+  const matchKey = ch => normalize(ch) || String(ch).normalize('NFKC');      // NFKC still folds the half-width ｰ into ー
+
+  // Characters as people see them: NFC, with combining marks, variation selectors and joined sequences kept on their base
+  function units(text) {
+    const ZWJ = String.fromCharCode(0x200d), out = [];
+    for (const ch of String(text || '').normalize('NFC')) {
+      const attach = out.length && (/\p{M}/u.test(ch) || ch === ZWJ || out[out.length - 1].endsWith(ZWJ));
+      if (attach) out[out.length - 1] += ch; else out.push(ch);
+    }
+    return out;
+  }
+
   function removeChars(cipher, chars) {
-    const set = new Set(chars.filter(Boolean));
-    const letters = [...cipher];
+    const set = new Set(chars.filter(Boolean).map(matchKey));
+    const letters = units(cipher);
+    const hit = ch => set.has(matchKey(ch));
     return {
-      plain: letters.filter(ch => !set.has(ch)).join(''),
-      removed: letters.map((ch, i) => (set.has(ch) ? i : -1)).filter(i => i >= 0)
+      plain: letters.filter(ch => !hit(ch)).join(''),
+      removed: letters.map((ch, i) => (hit(ch) ? i : -1)).filter(i => i >= 0)
     };
   }
 
   // ---------- Position rules ----------
-  // mark: the character `offset` places from each mark (-1 = just before, 3 = the third after).
+  const isLetter = ch => /\p{L}/u.test(ch);
+
+  // Index of the n-th letter after position i (spaces and punctuation are skipped), or -1
+  function nthLetterAfter(letters, i, n) {
+    let count = 0;
+    for (let k = i + 1; k < letters.length; k++) {
+      if (isLetter(letters[k]) && ++count === n) return k;
+    }
+    return -1;
+  }
+
+  // mark: the character `offset` places from each mark (-1 = just before, 3 = the third after);
+  //   with lettersOnly, only letters are counted (the English "third letter after each punctuation mark").
   // segments: split by `separator`, read the first and/or last character of each part.
+  // words: the letter at `index` of each word (-1 = last); words are separated by spaces and only letters count.
+  // Combinations that have no wording in describeRule are rejected instead of being read one way and described another
+  function checkRule(rule) {
+    if (rule.kind === 'mark' && rule.lettersOnly && rule.offset < 1) throw new Error('lettersOnly needs a positive offset');
+    if (rule.kind === 'mark' && rule.offset < -1) throw new Error('only -1 is supported before a mark');
+    if (rule.kind === 'words' && rule.index < -1) throw new Error('only -1 is supported from the end of a word');
+  }
+
   function applyRule(text, rule) {
+    checkRule(rule);
     const letters = [...text];
     const picks = [];
     if (rule.kind === 'mark') {
       letters.forEach((ch, i) => {
         if (!rule.marks.includes(ch)) return;
-        const j = i + rule.offset;
+        const j = rule.lettersOnly ? nthLetterAfter(letters, i, rule.offset) : i + rule.offset;
         picks.push({ index: j, char: j >= 0 && j < letters.length ? letters[j] : '' });
       });
+    } else if (rule.kind === 'words') {
+      let word = [];
+      const flush = () => {
+        if (word.length) {
+          const j = word[rule.index < 0 ? word.length + rule.index : rule.index];
+          picks.push({ index: j === undefined ? -1 : j, char: j === undefined ? '' : letters[j] });
+        }
+        word = [];
+      };
+      letters.forEach((ch, i) => {
+        if (/\s/.test(ch)) flush();
+        else if (isLetter(ch)) word.push(i);
+      });
+      flush();
     } else if (rule.kind === 'segments') {
       const parts = [];
       let start = 0;
@@ -79,6 +130,24 @@ const HiddenCore = (() => {
       throw new Error('Unknown rule: ' + rule.kind);
     }
     return { plain: picks.map(p => p.char).join(''), indices: picks.map(p => p.index) };
+  }
+
+  // Wording of a rule, built from the same object the reader uses; t(key, values) supplies the messages
+  function describeRule(rule, t) {
+    checkRule(rule);
+    if (rule.kind === 'mark') {
+      const marks = rule.marks.map(mark => t('rule.mark', { mark })).join(t('rule.or'));
+      if (rule.offset === -1) return t('rule.before1', { marks });
+      if (rule.lettersOnly) return t(rule.offset === 1 ? 'rule.after1Letter' : 'rule.afterNLetter', { marks, n: rule.offset });
+      return t(rule.offset === 1 ? 'rule.after1' : 'rule.afterN', { marks, n: rule.offset });
+    }
+    if (rule.kind === 'words') {
+      if (rule.index === 0) return t('rule.wordFirst');
+      if (rule.index === -1) return t('rule.wordLast');
+      return t('rule.wordN', { n: rule.index + 1 });
+    }
+    const text = t(rule.order === 'last' ? 'rule.last' : 'rule.firstLast');
+    return rule.stripDakuten ? t('rule.withDakuten', { rule: text }) : text;
   }
 
   // ---------- Stencil ----------
@@ -105,7 +174,152 @@ const HiddenCore = (() => {
   const RANKS = [[95, 'S'], [80, 'A'], [60, 'B'], [40, 'C'], [0, 'D']];
   const rank = percent => RANKS.find(([min]) => percent >= min)[1];
 
-  return { normalize, isBlank, isCorrect, stripDakuten, fullSize, sameLetters, acrostic, removeChars, applyRule, rotate, visible, rank };
+  // ---------- Maker ----------
+  // Seeded generator (mulberry32) so that a made cipher can be reproduced and tested
+  function rng(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // FNV-1a hash of a text, used as a seed
+  function seedOf(text) {
+    let h = 2166136261;
+    for (const ch of String(text)) {
+      h ^= ch.codePointAt(0);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  // Units of the message without spaces (see units(): a letter typed as base + combining mark is one unit)
+  const messageLetters = message => units(message).filter(u => !/^\s+$/.test(u));
+  const code = ch => ch.charCodeAt(0);
+  const isHiragana = ch => code(ch) >= 0x3041 && code(ch) <= 0x3096;
+  const isKatakana = ch => code(ch) >= 0x30a1 && code(ch) <= 0x30fa;       // without the long vowel mark and the middle dot
+  const sameChar = (a, b) => matchKey(a) === matchKey(b);
+  // Line heads: small kana count as full size, as in the puzzles' readings
+  const sameHead = (a, b) => [...normalize(a)].map(fullSize).join('') === [...normalize(b)].map(fullSize).join('');
+  // A filler that is only a combining mark or variation selector would be invisible or join the character before it
+  // Also format characters (zero-width space, soft hyphen, tag characters), and a unit ending in a zero-width joiner,
+  // which would fuse with the next character of the cipher
+  const invisible = unit => unit.replace(/[\p{M}\p{Cf}\s]/gu, '') === '' || unit.endsWith(String.fromCharCode(0x200d));
+
+  // Full-size kana from `from` to `to` (katakana sit 0x60 above hiragana), without wi and we
+  const kanaRange = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => String.fromCharCode(from + i))
+    .filter(ch => {
+      const hira = isKatakana(ch) ? String.fromCharCode(code(ch) - 0x60) : ch;
+      return fullSize(hira) === hira && ![0x3090, 0x3091, 0x30f0, 0x30f1].includes(code(ch));
+    });
+
+  // Filler characters in the message's own script: hiragana, katakana (when katakana is the majority) or A-Z
+  function fillerAlphabet(message) {
+    const letters = messageLetters(message);
+    const hira = letters.filter(isHiragana).length, kata = letters.filter(isKatakana).length;
+    if (hira || kata) return kata > hira ? kanaRange(0x30a2, 0x30f3) : kanaRange(0x3042, 0x3093);
+    return Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
+  }
+
+  // Inserts filler characters before each letter with probability `rate` (at least one filler overall)
+  const fillerUnits = nulls => nulls.flatMap(units).filter(u => u.trim() !== '');
+
+  function makeRemoval(message, nulls, { rate, rand }) {
+    const letters = messageLetters(message), fill = fillerUnits(nulls).filter(u => !invisible(u));
+    if (!letters.length || !fill.length) return '';
+    const pick = () => fill[Math.floor(rand() * fill.length)];
+    let out = '', used = 0;
+    for (const ch of letters) {
+      if (rand() < rate) { out += pick(); used++; }
+      out += ch;
+    }
+    if (used === 0 || rand() < rate) out += pick();
+    return out;
+  }
+
+  function removalReport(message, nulls, cipher) {
+    const letters = messageLetters(message), fill = fillerUnits(nulls), findings = [];
+    const hidden = fill.filter(invisible);
+    if (hidden.length) {
+      const codes = hidden.map(u => [...u].map(c => 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')).join(''));
+      findings.push({ level: 'error', key: 'maker.removal.invisible', values: { chars: codes.join(' ') } });
+    }
+    const clash = [...new Set(fill.filter(n => letters.some(ch => sameChar(ch, n))))];
+    if (clash.length) findings.push({ level: 'error', key: 'maker.removal.clash', values: { chars: clash.join(' ') } });
+    if (!cipher || hidden.length) return findings;
+    if (!clash.length && removeChars(cipher, fill).plain === letters.join('')) findings.push({ level: 'ok', key: 'maker.removal.roundTrip' });
+    const chars = units(cipher);
+    const percent = Math.round((chars.filter(ch => fill.some(n => sameChar(n, ch))).length / chars.length) * 100);
+    findings.push(percent > 40 ? { level: 'warning', key: 'maker.removal.tooMany', values: { percent } }
+      : { level: 'info', key: 'maker.removal.share', values: { percent } });
+    return findings;
+  }
+
+  // Puts the message letters at random cells (read row by row) and fills the rest.
+  // Latin letters are made uppercase to match the A-Z filler; otherwise lowercase holes would stand out.
+  function makeStencil(message, { size = 5, rand }) {
+    const letters = messageLetters(message).map(ch => (/[a-z]/.test(ch) ? ch.toUpperCase() : ch));
+    if (!letters.length || letters.length > size * size) return null;
+    const cells = Array.from({ length: size * size }, (_, i) => i);
+    for (let i = cells.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [cells[i], cells[j]] = [cells[j], cells[i]];
+    }
+    const alphabet = fillerAlphabet(message);
+    const grid = Array.from({ length: size }, () => Array.from({ length: size }, () => alphabet[Math.floor(rand() * alphabet.length)]));
+    const mask = Array.from({ length: size }, () => Array(size).fill(0));
+    cells.slice(0, letters.length).sort((a, b) => a - b).forEach((cell, k) => {
+      const y = Math.floor(cell / size), x = cell % size;
+      grid[y][x] = letters[k];
+      mask[y][x] = 1;
+    });
+    return { grid, mask };
+  }
+
+  function stencilReport(message, made, size = 5) {
+    const letters = messageLetters(message), count = letters.length;
+    if (count > size * size) return [{ level: 'error', key: 'maker.stencil.tooLong', values: { max: size * size } }];
+    const findings = [];
+    if (made && sameChar(visible(made.grid, made.mask).plain, letters.join(''))) findings.push({ level: 'ok', key: 'maker.stencil.roundTrip' });
+    // A hole character that can never be a filler (small kana, the long vowel mark, digits, symbols, another script)
+    // is the only one of its kind in the grid, so it gives the message away
+    if (made) {
+      const cells = made.grid.flatMap((row, y) => row.map((ch, x) => ({ ch, hole: made.mask[y][x] === 1 })));
+      const alphabet = new Set(fillerAlphabet(message));
+      const revealing = [...new Set(cells.filter(c => c.hole && !alphabet.has(c.ch)).map(c => c.ch))];
+      if (cells.some(c => !c.hole) && revealing.length) {
+        findings.push({ level: 'warning', key: 'maker.stencil.standsOut', values: { chars: revealing.join(' ') } });
+      }
+    }
+    if (count > (size * size) / 2) findings.push({ level: 'warning', key: 'maker.stencil.manyHoles', values: { count } });
+    return findings;
+  }
+
+  // Line-by-line check of an acrostic being written: which head is expected and whether it matches.
+  // Digits and symbols in the message cannot start a line (heads skip them), so they are left out and reported.
+  function acrosticReport(message, text) {
+    const all = messageLetters(message), letters = all.filter(isLetter);
+    const source = String(text).normalize('NFC'), heads = acrostic(source), rows = source.split('\n');
+    const lines = heads.map((h, i) => ({ row: h.row, char: h.char, expected: letters[i] || '', ok: i < letters.length && sameHead(h.char, letters[i]) }));
+    const findings = [];
+    const skipped = [...new Set(all.filter(ch => !isLetter(ch)))];
+    if (skipped.length) findings.push({ level: 'info', key: 'maker.acrostic.skipped', values: { chars: skipped.join(' ') } });
+    if (heads.length !== letters.length) {
+      findings.push({ level: 'warning', key: 'maker.acrostic.count', values: { lines: heads.length, letters: letters.length } });
+    }
+    const short = heads.filter(h => [...rows[h.row].trim()].length <= 2).length;
+    if (short) findings.push({ level: 'info', key: 'maker.acrostic.short', values: { count: short } });
+    if (letters.length && heads.length === letters.length && lines.every(l => l.ok)) findings.push({ level: 'ok', key: 'maker.acrostic.done' });
+    return { lines, next: letters[heads.length] || '', findings };
+  }
+
+  return {
+    normalize, isBlank, isCorrect, stripDakuten, fullSize, sameLetters, units, acrostic, removeChars, applyRule, describeRule, rotate, visible, rank,
+    rng, seedOf, messageLetters, fillerAlphabet, makeRemoval, removalReport, makeStencil, stencilReport, acrosticReport
+  };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = HiddenCore;

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Hidden Message Challenge is an educational web app for concealment ciphers (分置式暗号): acrostics, character removal, position rules and stencils, five puzzles each. It is part of "100 Security Tools with Generative AI" (Day 036). It makes no network requests.
+Hidden Message Challenge is an educational web app for concealment ciphers (分置式暗号): acrostics, character removal, position rules and stencils, five puzzles each, in a Japanese set and an English set, plus a maker for building your own. It is part of "100 Security Tools with Generative AI" (Day 036). It makes no network requests.
 
 ## Commands
 
@@ -16,12 +16,13 @@ Hidden Message Challenge is an educational web app for concealment ciphers (分�
 Classic scripts (no ES modules, so file:// works). Load order in `index.html`:
 
 1. `js/i18n.js` - `I18n` with `ja` and `en` dictionaries (UI text, hints `hint.<id>`, explanations `explain.<id>`), `t(key, values)`, `apply()` for `data-i18n*` attributes, language choice (`?lang=` → localStorage → `navigator.language`)
-2. `js/hidden-core.js` - `HiddenCore`: `normalize`/`isCorrect`, `acrostic`, `removeChars`, `applyRule` (structured rules), `rotate`/`visible` (stencil), `rank`. Each reader returns the positions it read, used for highlighting. Pure, no DOM
-3. `js/hidden-data.js` - `HiddenData`: the twenty puzzles. `answers[0]` must follow from the rule; later entries are other spellings only
+2. `js/hidden-core.js` - `HiddenCore`: `normalize`/`isCorrect`, `units`, `acrostic`, `removeChars`, `applyRule` and `describeRule` (structured rules, including English `words` and `lettersOnly`), `rotate`/`visible` (stencil), `rank`, and the maker's generators and checks (`rng`, `seedOf`, `makeRemoval`, `removalReport`, `makeStencil`, `stencilReport`, `acrosticReport`). Each reader returns the positions it read, used for highlighting. Pure, no DOM
+3. `js/hidden-data.js` - `HiddenData`: `BY_SET.ja` and `BY_SET.en`, twenty puzzles each. `answers[0]` must follow from the rule; later entries are other spellings only. Historical English texts were checked against page images of their sources
 4. `js/progress.js` - `Progress`: stored format `{ kind: { current, solved[], missed[] } }`, validation, recording, summary. Pure
-5. `js/main.js` - `Store` (one localStorage key, safe when storage is blocked), tabs, help `<dialog>`, language button
+5. `js/main.js` - `Store` (progress per puzzle set and the chosen set, safe when storage is blocked; the set is chosen from the display language on the first visit and then kept), set buttons, tabs, help `<dialog>`, language button
 6. `js/challenges.js` - one shared flow for the four panels (three hints, check, next, progress dots) plus per-method drawing
-7. `js/results.js` - radar chart (canvas with `aria-label`), totals, rank, share link, image download, reset `<dialog>`
+7. `js/results.js` - radar chart (canvas with `aria-label`), totals, rank, share link, image download, reset `<dialog>` (current set only)
+8. `js/maker.js` - maker tab: acrostic line check as you type, removal and stencil generation; announces a short summary through a `role="status"` element
 
 ## Rules
 

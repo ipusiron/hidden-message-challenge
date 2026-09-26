@@ -25,15 +25,15 @@ test('English messages contain no Japanese', () => {
 });
 
 test('every puzzle has a hint and an explanation', () => {
-  for (const p of Object.values(D.SETS).flat()) {
+  for (const p of Object.values(D.BY_SET).flatMap(set => Object.values(set).flat())) {
     for (const prefix of ['hint', 'explain']) assert.ok(Object.hasOwn(I18n.ja, `${prefix}.${p.id}`), `${prefix}.${p.id}`);
   }
-  const ids = new Set(Object.values(D.SETS).flat().map(p => p.id));
+  const ids = new Set(Object.values(D.BY_SET).flatMap(set => Object.values(set).flat()).map(p => p.id));
   for (const key of Object.keys(I18n.ja).filter(k => /^(hint|explain)\./.test(k))) assert.ok(ids.has(key.split('.')[1]), `unused ${key}`);
 });
 
 test('quoted puzzles name their source in both languages', () => {
-  const quoted = new Set(Object.values(D.SETS).flat().filter(p => p.source).map(p => p.id));
+  const quoted = new Set(Object.values(D.BY_SET).flatMap(set => Object.values(set).flat()).filter(p => p.source).map(p => p.id));
   const keys = Object.keys(I18n.ja).filter(k => k.startsWith('source.'));
   assert.deepEqual(keys.map(k => k.slice(7)).sort(), [...quoted].sort());
   for (const key of keys) {
@@ -55,6 +55,34 @@ test('every key used by the markup and scripts exists', () => {
   for (const kind of ['headline', 'removeChar', 'position', 'stencil', 'results']) assert.ok(Object.hasOwn(I18n.ja, `tab.${kind}`), kind);
   for (const r of ['S', 'A', 'B', 'C', 'D']) assert.ok(Object.hasOwn(I18n.ja, `rank.${r}`), r);
   for (const s of ['Solved', 'Missed', 'Todo']) assert.ok(Object.hasOwn(I18n.ja, `common.dot${s}`), s);
+});
+
+test('keys built by the core and the maker exist', () => {
+  const C = require('../js/hidden-core.js');
+  const check = (key, values = {}) => {
+    assert.ok(Object.hasOwn(I18n.ja, key) && Object.hasOwn(I18n.en, key), key);
+    return key + JSON.stringify(values);
+  };
+  for (const list of Object.values(D.BY_SET)) {
+    for (const p of list.position) C.describeRule(p.rule, check);
+  }
+  for (const rule of [{ kind: 'words', index: 0 }, { kind: 'words', index: 2 }, { kind: 'words', index: -1 },
+    { kind: 'mark', marks: [','], offset: 1, lettersOnly: true }, { kind: 'mark', marks: [','], offset: 3, lettersOnly: true }]) C.describeRule(rule, check);
+  const findings = [
+    ...C.removalReport('Bees', ['b'], ''), ...C.removalReport('abc', ['x'], 'xabc'), ...C.removalReport('abc', ['x'], 'xaxbxcxx'),
+    ...C.stencilReport('A'.repeat(26)), ...C.stencilReport('A'.repeat(13), C.makeStencil('A'.repeat(13), { rand: C.rng(3) })),
+    ...C.acrosticReport('ab', 'Apple').findings, ...C.acrosticReport('ab', ['Apple', 'Banana'].join('\n')).findings,
+    ...C.acrosticReport('a', ['x', 'y'].join('\n')).findings, ...C.acrosticReport('a5', 'apple').findings,
+    ...C.stencilReport('きって', C.makeStencil('きって', { rand: C.rng(7) })),
+    ...C.removalReport('meet', [String.fromCharCode(0x3099)], '')
+  ];
+  for (const f of findings) check(f.key, f.values);
+  for (const level of ['error', 'warning', 'info', 'ok']) check(`finding.${level}`);
+  for (const key of ['maker.line.ok', 'maker.line.ng', 'maker.line.extra', 'maker.removal.noNulls', 'maker.empty', 'maker.next']) check(key);
+  for (const set of Object.keys(D.BY_SET)) check(`set.${set}`);
+  const makerKeys = Object.keys(I18n.ja).filter(k => /^maker\.(removal|stencil|acrostic)\./.test(k));
+  const produced = new Set([...findings.map(f => f.key), 'maker.removal.noNulls']);
+  for (const key of makerKeys) assert.ok(produced.has(key), `unused ${key}`);
 });
 
 test('scripts other than the dictionary and the puzzle data contain no Japanese outside comments', () => {

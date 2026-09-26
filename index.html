@@ -30,7 +30,14 @@
     <button type="button" class="tab-button" role="tab" id="tab-position" aria-controls="position" aria-selected="false" tabindex="-1" data-tab="position" data-i18n="tab.position">位置抽出</button>
     <button type="button" class="tab-button" role="tab" id="tab-stencil" aria-controls="stencil" aria-selected="false" tabindex="-1" data-tab="stencil" data-i18n="tab.stencil">ステンシル</button>
     <button type="button" class="tab-button" role="tab" id="tab-results" aria-controls="results" aria-selected="false" tabindex="-1" data-tab="results" data-i18n="tab.results">成果</button>
+    <button type="button" class="tab-button" role="tab" id="tab-maker" aria-controls="maker" aria-selected="false" tabindex="-1" data-tab="maker" data-i18n="tab.maker">作成</button>
   </nav>
+
+  <div class="set-switch" id="set-switch" role="group" data-i18n-aria-label="set.label">
+    <span class="set-label" data-i18n="set.label">問題セット</span>
+    <button type="button" class="set-button" data-set="ja" aria-pressed="true" data-i18n="set.ja">日本語の問題</button>
+    <button type="button" class="set-button" data-set="en" aria-pressed="false" data-i18n="set.en">英語の問題</button>
+  </div>
 
   <main>
     <!-- 行頭読み -->
@@ -101,6 +108,7 @@
     <!-- 成果 -->
     <section id="results" class="tab-panel" role="tabpanel" aria-labelledby="tab-results" hidden>
       <h2 data-i18n="results.heading">🏆 チャレンジ成果</h2>
+      <p class="results-set" id="results-set"></p>
       <div class="results-layout">
         <canvas id="radar-chart" width="400" height="400" role="img"></canvas>
         <div class="results-text">
@@ -116,6 +124,53 @@
         <button type="button" id="reset-all" class="action-button danger" data-i18n="results.reset">🔄 最初からやり直す</button>
       </div>
       <p class="notice" id="results-notice" role="status"></p>
+    </section>
+
+    <!-- 作成モード -->
+    <section id="maker" class="tab-panel" role="tabpanel" aria-labelledby="tab-maker" hidden>
+      <h2 data-i18n="maker.heading">✍️ 作成モード</h2>
+      <p class="challenge-desc" data-i18n="maker.desc">自分で分置式暗号文を作ってみましょう。</p>
+      <fieldset class="maker-methods">
+        <legend data-i18n="maker.method">方式</legend>
+        <label class="radio-option"><input type="radio" name="maker-method" value="acrostic" checked> <span data-i18n="maker.method.acrostic">行頭読み</span></label>
+        <label class="radio-option"><input type="radio" name="maker-method" value="removal"> <span data-i18n="maker.method.removal">除去文字</span></label>
+        <label class="radio-option"><input type="radio" name="maker-method" value="stencil"> <span data-i18n="maker.method.stencil">ステンシル</span></label>
+      </fieldset>
+      <div class="maker-field">
+        <label for="maker-message" data-i18n="maker.message">隠したい文</label>
+        <input type="text" id="maker-message" class="answer-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="maker-message-hint">
+        <small id="maker-message-hint" data-i18n="maker.messageHint">ひらがなか英字。空白は無視します。</small>
+      </div>
+      <div class="maker-field" id="maker-acrostic">
+        <label for="maker-lines" data-i18n="maker.lines">カバーの文</label>
+        <textarea id="maker-lines" rows="6" autocomplete="off" spellcheck="false"></textarea>
+        <ol class="maker-line-check" id="maker-line-check"></ol>
+      </div>
+      <div class="maker-field" id="maker-removal" hidden>
+        <label for="maker-nulls" data-i18n="maker.nulls">混ぜる文字</label>
+        <input type="text" id="maker-nulls" class="answer-input" maxlength="4" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <label for="maker-rate" data-i18n="maker.rate">混ぜる量</label>
+        <select id="maker-rate">
+          <option value="0.25" data-i18n="maker.rate.low">少なめ</option>
+          <option value="0.4" selected data-i18n="maker.rate.mid">ふつう</option>
+          <option value="0.55" data-i18n="maker.rate.high">多め</option>
+        </select>
+      </div>
+      <div class="button-group" id="maker-actions" hidden>
+        <button type="button" id="maker-generate" class="action-button" data-i18n="maker.generate">作る</button>
+      </div>
+      <!-- the same grid is in the text box below (with the stencil as ■), which screen readers use -->
+      <table class="stencil-grid maker-grid" id="maker-grid" aria-hidden="true" hidden></table>
+      <div class="maker-field" id="maker-result" hidden>
+        <label for="maker-output" id="maker-output-label">暗号文</label>
+        <textarea id="maker-output" rows="4" readonly autocomplete="off" spellcheck="false"></textarea>
+        <div class="button-group">
+          <button type="button" id="maker-copy" class="action-button" data-i18n="maker.copy">コピー</button>
+        </div>
+        <p class="notice" id="maker-copy-status" role="status"></p>
+      </div>
+      <ul class="findings" id="maker-findings"></ul>
+      <p class="visually-hidden" id="maker-status" role="status"></p>
     </section>
   </main>
 
@@ -170,5 +225,6 @@
   <script src="js/main.js"></script>
   <script src="js/challenges.js"></script>
   <script src="js/results.js"></script>
+  <script src="js/maker.js"></script>
 </body>
 </html>

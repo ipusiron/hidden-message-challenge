@@ -30,6 +30,13 @@ test('text colors meet 4.5:1 on their backgrounds', () => {
   for (const [fg, bg] of pairs) assert.ok(ratio(fg, bg) >= 4.5, `${fg} on ${bg}: ${ratio(fg, bg).toFixed(2)}`);
 });
 
+test('field borders meet 3:1 against white', () => {
+  const borders = [...css.matchAll(/border: 2px solid (#[0-9a-f]{6});/g)].map(m => m[1]);
+  assert.ok(borders.includes('#64748b'));
+  assert.ok(!borders.includes('#94a3b8'), 'the old 2.56:1 border is gone');
+  assert.ok(ratio('#64748b', '#ffffff') >= 3);
+});
+
 test('the pairs above are the ones the stylesheet uses', () => {
   for (const rule of ['.hint-button { background: #fbbf24; color: var(--text); }', '.check-button { background: var(--ok); color: #ffffff; }',
     'mark.removed { background: #fecaca; color: #7f1d1d;', '.explain { margin: 0; padding: 0.75rem 1rem; background: #dcfce7; color: #14532d;']) {

@@ -1,39 +1,82 @@
-// Shared progress store, tabs, help dialog and language switching.
+// Shared progress store (one saved progress per puzzle set), tabs, help dialog, set and language switching.
 const Store = (() => {
-  const KEY = 'hidden-message-challenge-progress';
-  const sizes = Object.fromEntries(Object.entries(HiddenData.SETS).map(([kind, list]) => [kind, list.length]));
-  let state = Progress.empty();
+  const KEYS = { ja: 'hidden-message-challenge-progress', en: 'hidden-message-challenge-progress-en' };
+  const SET_KEY = 'hidden-message-challenge-set';
+  const sizesOf = set => Object.fromEntries(Object.entries(HiddenData.BY_SET[set]).map(([kind, list]) => [kind, list.length]));
+  const states = {};
+  let set = 'ja';
 
-  function load() {
-    let json = null;
-    try { json = localStorage.getItem(KEY); } catch (e) { /* storage may be blocked */ }
-    state = json ? Progress.parse(json, sizes) : Progress.empty();
+  function read(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }       // storage may be blocked
   }
+  function write(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) { /* storage may be blocked */ }
+  }
+  const fire = name => document.dispatchEvent(new Event(name));
 
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage may be blocked */ }
+  // The saved set wins; otherwise the set follows the display language
+  function init(language) {
+    for (const s of Object.keys(KEYS)) {
+      const json = read(KEYS[s]);
+      states[s] = json ? Progress.parse(json, sizesOf(s)) : Progress.empty();
+    }
+    // The first visit picks the set from the display language and saves it, so that later language switches
+    // and reloads never swap the puzzles (and any work in progress) away
+    const saved = read(SET_KEY);
+    set = saved === 'ja' || saved === 'en' ? saved : (language === 'en' ? 'en' : 'ja');
+    if (saved !== set) write(SET_KEY, set);
   }
 
   // fn receives the current state and returns the next one
   function update(fn) {
-    state = fn(state);
-    save();
-    document.dispatchEvent(new Event('progresschange'));
+    states[set] = fn(states[set]);
+    write(KEYS[set], JSON.stringify(states[set]));
+    fire('progresschange');
   }
 
+  // Clears the progress of the current set only
   function reset() {
-    try { localStorage.removeItem(KEY); } catch (e) { /* storage may be blocked */ }
-    state = Progress.empty();
-    document.dispatchEvent(new Event('progressreset'));
-    document.dispatchEvent(new Event('progresschange'));
+    try { localStorage.removeItem(KEYS[set]); } catch (e) { /* storage may be blocked */ }
+    states[set] = Progress.empty();
+    fire('progressreset');
+    fire('progresschange');
   }
 
-  load();
-  return { sizes, update, reset, get state() { return state; } };
+  function switchTo(value) {
+    if (!(value in KEYS) || value === set) return;
+    set = value;
+    fire('setchange');
+    fire('progresschange');
+  }
+
+  function chooseSet(value) {
+    if (!(value in KEYS)) return;
+    write(SET_KEY, value);
+    switchTo(value);
+  }
+
+  return {
+    init, update, reset, chooseSet,
+    puzzles: kind => HiddenData.BY_SET[set][kind],
+    get set() { return set; },
+    get sizes() { return sizesOf(set); },
+    get state() { return states[set]; }
+  };
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
   I18n.init();
+  Store.init(I18n.language);
+
+  // ---------- Puzzle set ----------
+  const setSwitch = document.getElementById('set-switch');
+  const setButtons = [...document.querySelectorAll('.set-button')];
+  function renderSet() {
+    setButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.set === Store.set)));
+  }
+  setButtons.forEach(button => button.addEventListener('click', () => Store.chooseSet(button.dataset.set)));
+  document.addEventListener('setchange', renderSet);
+  renderSet();
 
   // ---------- Tabs (WAI-ARIA tabs pattern) ----------
   const tabs = [...document.querySelectorAll('.tab-button')];
@@ -46,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.tabIndex = selected ? 0 : -1;
       document.getElementById(btn.dataset.tab).hidden = !selected;
     });
+    setSwitch.hidden = tab.dataset.tab === 'maker';          // the maker does not use the puzzle sets
     if (focus) tab.focus();
     document.dispatchEvent(new CustomEvent('tabchange', { detail: tab.dataset.tab }));
   }
@@ -67,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderHelp() {
     helpBody.replaceChildren();
-    for (const n of [1, 2, 3, 4, 5]) {
+    for (const n of [1, 2, 3, 4, 6, 7, 5]) {
       const heading = document.createElement('h3');
       heading.textContent = I18n.t(`help.s${n}.h`);
       const text = document.createElement('p');
