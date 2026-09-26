@@ -57,6 +57,7 @@ const HiddenData = (() => {
 
   // ---------- English set ----------
   // Historical texts (source: true) are public domain; their sources are in source.<id> of js/i18n.js.
+  // The two World War I cables follow Hoy (1932), the earliest printing whose page could be checked.
   const EN_HEADLINE = [
     { id: 'ea1', text: 'Hope the weather holds this week.\nI finally fixed the old bicycle.\nDo write when you get the chance.\n' +
       'Every day here is much the same.', answers: ['hide'] },
@@ -88,8 +89,8 @@ const HiddenData = (() => {
   ];
 
   const EN_POSITION = [
-    { id: 'ep1', source: true, text: 'PRESIDENT’S EMBARGO RULING SHOULD HAVE IMMEDIATE NOTICE. GRAVE SITUATION AFFECTING INTERNATIONAL LAW. ' +
-      'STATEMENT FORESHADOWS RUIN OF MANY NEUTRALS. YELLOW JOURNALS UNIFYING NATIONAL EXCITEMENT IMMENSELY.',
+    { id: 'ep1', source: true, text: 'President’s embargo ruling should have immediate notice. Grave situation affecting international law. ' +
+      'Statement foreshadows ruin of many neutrals. Yellow journals unifying national excitement immensely.',
       rule: { kind: 'words', index: 0 }, answers: ['pershingsailsfromnyjunei'] },
     { id: 'ep2', text: 'Still extra quiet here.', rule: { kind: 'words', index: -1 }, answers: ['late'] },
     { id: 'ep3', text: 'Dear Ann, spring is here. Our garden is green, orange lilies bloom. Next week we travel.',

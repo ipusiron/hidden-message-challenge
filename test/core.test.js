@@ -166,6 +166,24 @@ test('maker: acrostic report while writing', () => {
   assert.equal(C.acrosticReport('éa', ['été', 'ami'].join('\n')).findings.at(-1).key, 'maker.acrostic.done', 'NFC');
 });
 
+test('units: marks, variation selectors and the long vowel mark', () => {
+  const eye = '👁' + String.fromCharCode(0xfe0f);
+  assert.deepEqual(C.units('a' + eye + 'b'), ['a', eye, 'b'], 'a variation selector stays on its emoji');
+  assert.deepEqual(C.units('げ'.normalize('NFD')), ['げ'], 'NFD is composed first');
+  assert.deepEqual(C.removeChars('すーし', ['ー']), { plain: 'すし', removed: [1] }, 'the long vowel mark can be removed');
+  assert.equal(C.removeChars('すｰし', ['ｰ']).plain, 'すし');
+  const cipher = C.makeRemoval('meet', [eye], { rate: 0.5, rand: C.rng(5) });
+  assert.equal(C.removeChars(cipher, [eye]).plain, 'meet', 'an emoji filler is removed whole');
+  for (const lone of [String.fromCharCode(0x3099), String.fromCharCode(0xfe0f)]) {
+    assert.deepEqual(C.removalReport('meet', [lone], '').map(f => f.key), ['maker.removal.invisible']);
+    assert.ok(![...C.makeRemoval('meet', ['x', lone], { rate: 1, rand: C.rng(1) })].includes(lone), 'never inserted');
+  }
+  for (const [msg, chars] of [['ヵヶ', 'ヵ ヶ'], ['ゐ', 'ゐ'], ['a' + eye + 'b', eye]]) {
+    const report = C.stencilReport(msg, C.makeStencil(msg, { rand: C.rng(2) }));
+    assert.deepEqual(report.find(f => f.key.endsWith('standsOut')).values, { chars }, msg);
+  }
+});
+
 test('surrogate pairs, case-insensitive removal and unsupported rules', () => {
   assert.deepEqual(C.acrostic('\u{1D400}bc'), [{ row: 0, col: 0, char: '\u{1D400}' }], 'a letter outside the BMP is one character');
   assert.deepEqual(C.removeChars('BMEBET', ['b']), { plain: 'MEET', removed: [0, 3] }, 'lowercase b removes B');

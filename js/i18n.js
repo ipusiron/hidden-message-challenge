@@ -89,7 +89,7 @@ const I18n = (() => {
     'results.share': '📱 結果をXでシェア',
     'results.shareText': 'Hidden Message Challengeの{set}で総合ランク{rank}（{percent}%）を獲得しました。 #分置式暗号 #HiddenMessageChallenge',
     'results.download': '📥 結果を画像で保存',
-    'results.imageTitle': '分置式暗号文解読チャレンジの成果',
+    'results.imageTitle': '分置式暗号文解読チャレンジの成果（{set}）',
     'results.reset': '🔄 最初からやり直す',
     'reset.title': '進捗のリセット',
     'reset.body': 'この問題セットの進捗を消して、最初からやり直します。よろしいですか。',
@@ -245,19 +245,18 @@ const I18n = (() => {
     'source.ea5': '出典: ルイス・キャロル『鏡の国のアリス』（1871年）の結びの詩',
     'hint.ep1': '第一次世界大戦中の電文です。見かけは新聞向けの記事です。',
     'explain.ep1':
-      '「PERSHING SAILS FROM NY JUNE I」（パーシング将軍、6月1日にニューヨークを出航）。最後のIは数字の1です。デイヴィッド・カーン『The' +
-      ' Codebreakers』はドイツ側が送った電文として紹介していますが、送り手の名は挙げていません。送り手の見方は本によって分かれます（問題4の解説も参照）。カーンによれば、実際の出航は5月28日でした。',
-    'source.ep1': '出典: デイヴィッド・カーン『The Codebreakers』（1967年）が引用する第一次世界大戦の電文',
+      '「PERSHING SAILS FROM NY JUNE I」（パーシング将軍、6月1日にニューヨークを出航）。最後のIは数字の1です。カーン『The' +
+      ' Codebreakers』はドイツ側が送った電文として紹介していますが、英国海軍情報部にいたH・C・ホイは、アメリカから届いた自分たちの側の電文として書いており、見方が分かれます。カーンによれば、実際の出航は5月28日でした。',
+    'source.ep1': '出典: H・C・ホイ『40 O.B. or How the War Was Won』（1932年）p.42。デイヴィッド・カーン『The Codebreakers』（1967年）も引用',
     'hint.ep4': '問題1と同じ内容を、別の電文に隠しています。今度は各単語の2文字目です。',
-    'explain.ep4':
-      '同じ「PERSHING SAILS FROM NY JUNE I」が、各単語の2文字目に隠れています。by-productsのようにハイフンでつながった語は1語と数えます。英国海軍情報部にいたH・C・ホイは、この電文を味方の側が使った例として書いており、送り手の見方は本によって分' +
-      'かれます。',
-    'source.ep4': '出典: H・C・ホイ『40 O.B. or How the War Was Won』（1932年）。デイヴィッド・カーン『The Codebreakers』（1967年）も引用',
+    'explain.ep4': '同じ「PERSHING SAILS FROM NY JUNE I」が、各単語の2文字目に隠れています。by-productsのようにハイフンでつながった語は1語と数えます。ホイは、1通目を取り違えないよう念を押すために続けて届いた電文として紹介しています。',
+    'source.ep4': '出典: H・C・ホイ『40 O.B. or How the War Was Won』（1932年）p.42。デイヴィッド・カーン『The Codebreakers』（1967年）も引用',
     'hint.ep5': '王党派のジョン・トレヴァニオン卿に宛てた手紙とされる文です。句読点やダッシュのあと、3番目の英字を読みます。',
     'explain.ep5': '「PANEL AT EAST END OF CHAPEL SLIDES」（礼拝堂の東の端の羽目板が動く）。1863年の雑誌記事が初出で、実在のジョン・トレヴァニオンは1643年に戦死したとされ、1648年の話とは年が合わないため、史実とは考えにくい話です。',
     'source.ep5': '出典: S・ベアリング＝グールド『Curiosities of Olden Times』（1896年改訂版。初出は1863年の雑誌「Once a Week」）',
     'maker.stencil.standsOut': '穴の文字「{chars}」と同じ種類の文字が、ほかのマスにありません。型紙がなくても目立ちます（ひらがな・カタカナ・英字をそろえ、数字や記号、小さい文字は避けましょう）。',
-    'maker.acrostic.skipped': '「{chars}」は行の頭にならないので、飛ばして数えています。'
+    'maker.acrostic.skipped': '「{chars}」は行の頭にならないので、飛ばして数えています。',
+    'maker.removal.invisible': '混ぜる文字に、単独では見えない文字（{chars}）が入っています。前の文字にくっついて見えなくなるので使えません。'
   };
 
   const en = {
@@ -349,7 +348,7 @@ const I18n = (() => {
     'results.share': '📱 Share on X',
     'results.shareText': 'I reached rank {rank} ({percent}%) on the {set} in Hidden Message Challenge. #ConcealmentCipher #HiddenMessageChallenge',
     'results.download': '📥 Save as an image',
-    'results.imageTitle': 'Concealment Cipher Challenge results',
+    'results.imageTitle': 'Concealment Cipher Challenge results ({set})',
     'results.reset': '🔄 Start over',
     'reset.title': 'Reset progress',
     'reset.body': 'This clears the progress of this puzzle set and starts over. Continue?',
@@ -525,16 +524,15 @@ const I18n = (() => {
     'source.ea5': 'Source: Lewis Carroll, closing poem of Through the Looking-Glass (1871)',
     'hint.ep1': 'A World War I cable made to look like a press report.',
     'explain.ep1':
-      '"PERSHING SAILS FROM NY JUNE I": General Pershing sails from New York on June 1 (the final I stands for 1). David Kahn\'s The Codebreakers' +
-      ' presents it as sent by the Germans but does not name the sender, and accounts of the sender differ (see puzzle 4). According to Kahn,' +
-      ' Pershing actually sailed on May 28.',
-    'source.ep1': 'Source: a World War I message quoted in David Kahn, The Codebreakers (1967)',
+      '"PERSHING SAILS FROM NY JUNE I": General Pershing sails from New York on June 1 (the final I stands for 1). Kahn\'s The Codebreakers presents' +
+      ' it as sent by the Germans, while H. C. Hoy of British naval intelligence describes it as one of his own side\'s messages that reached them' +
+      ' from America, so accounts differ. According to Kahn, Pershing actually sailed on May 28.',
+    'source.ep1': 'Source: H. C. Hoy, 40 O.B. or How the War Was Won (1932), p. 42; also quoted in David Kahn, The Codebreakers (1967)',
     'hint.ep4': 'The same message as puzzle 1, hidden in another cable. This time, the second letter of each word.',
     'explain.ep4':
       'The same "PERSHING SAILS FROM NY JUNE I", hidden in the second letter of each word. A hyphenated word such as by-products counts as one' +
-      ' word. H. C. Hoy, who worked in British naval intelligence, describes this cable as one used by his own side, so accounts of the sender' +
-      ' differ.',
-    'source.ep4': 'Source: H. C. Hoy, 40 O.B. or How the War Was Won (1932); also quoted in David Kahn, The Codebreakers (1967)',
+      ' word. Hoy presents it as a second cable sent to make doubly sure the first was not misread.',
+    'source.ep4': 'Source: H. C. Hoy, 40 O.B. or How the War Was Won (1932), p. 42; also quoted in David Kahn, The Codebreakers (1967)',
     'hint.ep5': 'A letter said to have been sent to the Royalist Sir John Trevanion. Read the third letter after each punctuation mark or dash.',
     'explain.ep5':
       '"PANEL AT EAST END OF CHAPEL SLIDES". The story first appeared in an 1863 magazine article, and the real John Trevanion is recorded as' +
@@ -543,7 +541,10 @@ const I18n = (() => {
     'maker.stencil.standsOut':
       'No other cell has the same kind of character as "{chars}", so it stands out even without the stencil. Keep to one script and avoid digits,' +
       ' symbols and small kana.',
-    'maker.acrostic.skipped': '"{chars}" cannot start a line, so it is skipped.'
+    'maker.acrostic.skipped': '"{chars}" cannot start a line, so it is skipped.',
+    'maker.removal.invisible':
+      'The filler includes characters that are invisible on their own ({chars}). They would attach to the previous character, so they cannot be' +
+      ' used.'
   };
 
   let language = 'ja';

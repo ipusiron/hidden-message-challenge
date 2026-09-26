@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillText('Hidden Message Challenge', 600, 80);
     ctx.fillStyle = COLORS.text;
     ctx.font = '26px sans-serif';
-    ctx.fillText(`${I18n.t('results.imageTitle')} (${I18n.t(`set.${Store.set}`)})`, 600, 128);
+    ctx.fillText(I18n.t('results.imageTitle', { set: I18n.t(`set.${Store.set}`) }), 600, 128);
     const chart = document.createElement('canvas');
     chart.width = chart.height = 440;
     drawRadar(chart.getContext('2d'), 440, summary);

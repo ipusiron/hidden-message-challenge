@@ -10,10 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return node;
   }
 
-  // Replaces the content with `text`, wrapping the characters at `indices` in <mark>
-  function marked(container, text, indices, className) {
+  // Replaces the content with `text`, wrapping the characters at `indices` in <mark>.
+  // `split` must match the function that produced the indices (code points, or HiddenCore.units for removal).
+  function marked(container, text, indices, className, split = s => [...s]) {
     const set = new Set(indices);
-    container.replaceChildren(...[...text].map((ch, i) => (set.has(i) ? el('mark', className, ch) : document.createTextNode(ch))));
+    container.replaceChildren(...split(text).map((ch, i) => (set.has(i) ? el('mark', className, ch) : document.createTextNode(ch))));
   }
 
   // ---------- Acrostic ----------
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('headline-cipher').replaceChildren(...p.text.split('\n').map((line, row) => {
         const li = el('li', 'cipher-line');
         const head = heads.find(h => h.row === row);
-        if (view.highlight && head) li.append(line.slice(0, head.col), el('mark', 'mark', head.char), line.slice(head.col + 1));
+        if (view.highlight && head) li.append(line.slice(0, head.col), el('mark', 'mark', head.char), line.slice(head.col + head.char.length));
         else li.textContent = line;
         return li;
       }));
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
       charInputs.forEach(input => input.setAttribute('aria-label', I18n.t('removeChar.charLabel', { n: input.dataset.n })));
       const chosen = charInputs.map(input => input.value.trim()).filter(Boolean);
       const { plain, removed } = HiddenCore.removeChars(p.cipher, chosen);
-      marked(document.getElementById('removeChar-cipher'), p.cipher, removed, 'mark removed');
+      marked(document.getElementById('removeChar-cipher'), p.cipher, removed, 'mark removed', HiddenCore.units);
       document.getElementById('removeChar-preview').textContent =
         chosen.length ? I18n.t('removeChar.preview', { text: plain }) : I18n.t('removeChar.previewEmpty');
     },
@@ -73,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
       reading.hidden = !(p.reading && (view.hints.length > 0 || view.solved));
       if (reading.hidden) return;
       const body = el('span', 'reading-text');
+      body.lang = Store.set;
       marked(body, p.reading, view.highlight ? indices : [], 'mark');
       reading.replaceChildren(el('span', 'reading-label', I18n.t('position.readingLabel')), body);
     },
@@ -101,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const hole = onCard && turned[r][c] === 1;
           const td = el('td', 'cell' + (onCard ? (hole ? ' hole' : ' covered') : '') +
             (onCard && r === corner[0] && c === corner[1] ? ' corner' : ''), onCard && !hole ? '' : ch);
+          td.lang = Store.set;
           tr.append(td);
         });
         return tr;
@@ -171,9 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function draw() {
       spec.render(puzzle(), view);
       input.placeholder = I18n.t(Store.set === 'en' ? 'common.placeholderEn' : 'common.placeholder');
-      // puzzle content is in the set's language, which can differ from the page language
-      panel.querySelectorAll('.cipher, #removeChar-picture, .stencil-grid').forEach(node => { node.lang = Store.set; });
-      input.lang = Store.set;
+      // puzzle content is in the set's language, which can differ from the page language;
+      // containers that also hold UI text (the reading label, the grid's name) are left alone
+      panel.querySelectorAll('.cipher:not(.reading), #removeChar-picture').forEach(node => { node.lang = Store.set; });
       source.hidden = !puzzle().source;
       source.textContent = puzzle().source ? I18n.t(`source.${puzzle().id}`) : '';
       drawStatus();

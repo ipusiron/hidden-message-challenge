@@ -25,12 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const method = () => document.querySelector('input[name="maker-method"]:checked').value;
-  const nullChars = () => [...nulls.value].filter(ch => !/\s/.test(ch));
+  const nullChars = () => HiddenCore.messageLetters(nulls.value);      // units, so a decomposed character stays whole
 
-  // Screen readers hear one short summary, and only when it changes (the lists themselves are not live regions)
-  function announce(finding) {
+  // Screen readers hear one short summary, and only when it changes (the lists themselves are not live regions).
+  // `again` re-announces an unchanged summary, for "make again".
+  function announce(finding, again) {
     const text = finding ? I18n.t(finding.key, finding.values || {}) : '';
-    if (status.textContent !== text) status.textContent = text;
+    if (status.textContent === text && !again) return;
+    status.textContent = '';
+    requestAnimationFrame(() => { status.textContent = text; });
   }
   const mostSevere = findings => findings.slice().sort((a, b) => SEVERITY.indexOf(a.level) - SEVERITY.indexOf(b.level))[0];
 
@@ -59,7 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const findings = [...report.findings];
     if (report.next) findings.unshift({ level: 'info', key: 'maker.next', values: { char: report.next } });
     renderFindings(findings);
-    announce(findings.find(f => f.key === 'maker.acrostic.done') || findings.find(f => f.key === 'maker.next') || mostSevere(findings));
+    // a wrong line head matters more than progress
+    const wrong = report.lines.findIndex(l => l.expected && !l.ok);
+    const lineIssue = wrong >= 0 &&
+      { key: 'maker.line.ng', values: { n: wrong + 1, char: report.lines[wrong].char, expected: report.lines[wrong].expected } };
+    announce(lineIssue || findings.find(f => f.key === 'maker.acrostic.done') || findings.find(f => f.key === 'maker.next') || mostSevere(findings));
   }
 
   function renderGrid(result) {

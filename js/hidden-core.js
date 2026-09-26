@@ -45,10 +45,23 @@ const HiddenCore = (() => {
 
   // ---------- Character removal ----------
   // Matching ignores case, width and katakana/hiragana (b removes B; typing the letter as shown is not required).
+  // A character that normalizes to nothing (the long vowel mark) is matched as itself
+  const matchKey = ch => normalize(ch) || ch;
+
+  // Characters as people see them: NFC, with combining marks, variation selectors and joined sequences kept on their base
+  function units(text) {
+    const ZWJ = String.fromCharCode(0x200d), out = [];
+    for (const ch of String(text || '').normalize('NFC')) {
+      const attach = out.length && (/\p{M}/u.test(ch) || ch === ZWJ || out[out.length - 1].endsWith(ZWJ));
+      if (attach) out[out.length - 1] += ch; else out.push(ch);
+    }
+    return out;
+  }
+
   function removeChars(cipher, chars) {
-    const set = new Set(chars.map(normalize).filter(Boolean));
-    const letters = [...cipher];
-    const hit = ch => set.has(normalize(ch));
+    const set = new Set(chars.filter(Boolean).map(matchKey));
+    const letters = units(cipher);
+    const hit = ch => set.has(matchKey(ch));
     return {
       plain: letters.filter(ch => !hit(ch)).join(''),
       removed: letters.map((ch, i) => (hit(ch) ? i : -1)).filter(i => i >= 0)
@@ -183,30 +196,23 @@ const HiddenCore = (() => {
     return h >>> 0;
   }
 
-  // NFC first, so that a letter typed as base + combining mark counts as one character
-  const messageLetters = message => [...String(message || '').normalize('NFC')].filter(ch => !/\s/.test(ch));
+  // Units of the message without spaces (see units(): a letter typed as base + combining mark is one unit)
+  const messageLetters = message => units(message).filter(u => !/^\s+$/.test(u));
   const code = ch => ch.charCodeAt(0);
   const isHiragana = ch => code(ch) >= 0x3041 && code(ch) <= 0x3096;
   const isKatakana = ch => code(ch) >= 0x30a1 && code(ch) <= 0x30fa;       // without the long vowel mark and the middle dot
-  const sameChar = (a, b) => normalize(a) === normalize(b);
+  const sameChar = (a, b) => matchKey(a) === matchKey(b);
   // Line heads: small kana count as full size, as in the puzzles' readings
   const sameHead = (a, b) => [...normalize(a)].map(fullSize).join('') === [...normalize(b)].map(fullSize).join('');
+  // A filler that is only a combining mark or variation selector would be invisible or join the character before it
+  const invisible = unit => /^\p{M}+$/u.test(unit);
 
-  // Kind of a character. A hole whose kind never appears among the fillers gives the message away.
-  function charClass(ch) {
-    if (/[A-Z]/.test(ch)) return 'upper';
-    if (/[a-z]/.test(ch)) return 'lower';
-    if (isHiragana(ch) || isKatakana(ch)) {
-      const kata = isKatakana(ch);
-      const hira = kata ? String.fromCharCode(code(ch) - 0x60) : ch;       // katakana sit 0x60 above hiragana
-      return (kata ? 'katakana' : 'hiragana') + (fullSize(hira) !== hira ? '-small' : '');
-    }
-    return /\p{N}/u.test(ch) ? 'digit' : 'other';
-  }
-
-  // Full-size kana from `from` to `to` without wi and we (rare in modern text)
+  // Full-size kana from `from` to `to` (katakana sit 0x60 above hiragana), without wi and we
   const kanaRange = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => String.fromCharCode(from + i))
-    .filter(ch => !/-small$/.test(charClass(ch)) && ![0x3090, 0x3091, 0x30f0, 0x30f1].includes(code(ch)));
+    .filter(ch => {
+      const hira = isKatakana(ch) ? String.fromCharCode(code(ch) - 0x60) : ch;
+      return fullSize(hira) === hira && ![0x3090, 0x3091, 0x30f0, 0x30f1].includes(code(ch));
+    });
 
   // Filler characters in the message's own script: hiragana, katakana (when katakana is the majority) or A-Z
   function fillerAlphabet(message) {
@@ -217,8 +223,10 @@ const HiddenCore = (() => {
   }
 
   // Inserts filler characters before each letter with probability `rate` (at least one filler overall)
+  const fillerUnits = nulls => nulls.flatMap(units).filter(u => u.trim() !== '');
+
   function makeRemoval(message, nulls, { rate, rand }) {
-    const letters = messageLetters(message), fill = nulls.map(n => n.normalize('NFC')).filter(Boolean);
+    const letters = messageLetters(message), fill = fillerUnits(nulls).filter(u => !invisible(u));
     if (!letters.length || !fill.length) return '';
     const pick = () => fill[Math.floor(rand() * fill.length)];
     let out = '', used = 0;
@@ -231,12 +239,17 @@ const HiddenCore = (() => {
   }
 
   function removalReport(message, nulls, cipher) {
-    const letters = messageLetters(message), fill = nulls.map(n => n.normalize('NFC')).filter(Boolean), findings = [];
+    const letters = messageLetters(message), fill = fillerUnits(nulls), findings = [];
+    const hidden = fill.filter(invisible);
+    if (hidden.length) {
+      const codes = hidden.map(u => [...u].map(c => 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')).join(''));
+      findings.push({ level: 'error', key: 'maker.removal.invisible', values: { chars: codes.join(' ') } });
+    }
     const clash = [...new Set(fill.filter(n => letters.some(ch => sameChar(ch, n))))];
     if (clash.length) findings.push({ level: 'error', key: 'maker.removal.clash', values: { chars: clash.join(' ') } });
-    if (!cipher) return findings;
+    if (!cipher || hidden.length) return findings;
     if (!clash.length && removeChars(cipher, fill).plain === letters.join('')) findings.push({ level: 'ok', key: 'maker.removal.roundTrip' });
-    const chars = [...cipher];
+    const chars = units(cipher);
     const percent = Math.round((chars.filter(ch => fill.some(n => sameChar(n, ch))).length / chars.length) * 100);
     findings.push(percent > 40 ? { level: 'warning', key: 'maker.removal.tooMany', values: { percent } }
       : { level: 'info', key: 'maker.removal.share', values: { percent } });
@@ -269,11 +282,15 @@ const HiddenCore = (() => {
     if (count > size * size) return [{ level: 'error', key: 'maker.stencil.tooLong', values: { max: size * size } }];
     const findings = [];
     if (made && sameChar(visible(made.grid, made.mask).plain, letters.join(''))) findings.push({ level: 'ok', key: 'maker.stencil.roundTrip' });
+    // A hole character that can never be a filler (small kana, the long vowel mark, digits, symbols, another script)
+    // is the only one of its kind in the grid, so it gives the message away
     if (made) {
       const cells = made.grid.flatMap((row, y) => row.map((ch, x) => ({ ch, hole: made.mask[y][x] === 1 })));
-      const fillerKinds = new Set(cells.filter(c => !c.hole).map(c => charClass(c.ch)));
-      const revealing = [...new Set(cells.filter(c => c.hole && !fillerKinds.has(charClass(c.ch))).map(c => c.ch))];
-      if (fillerKinds.size && revealing.length) findings.push({ level: 'warning', key: 'maker.stencil.standsOut', values: { chars: revealing.join(' ') } });
+      const alphabet = new Set(fillerAlphabet(message));
+      const revealing = [...new Set(cells.filter(c => c.hole && !alphabet.has(c.ch)).map(c => c.ch))];
+      if (cells.some(c => !c.hole) && revealing.length) {
+        findings.push({ level: 'warning', key: 'maker.stencil.standsOut', values: { chars: revealing.join(' ') } });
+      }
     }
     if (count > (size * size) / 2) findings.push({ level: 'warning', key: 'maker.stencil.manyHoles', values: { count } });
     return findings;
@@ -298,7 +315,7 @@ const HiddenCore = (() => {
   }
 
   return {
-    normalize, isBlank, isCorrect, stripDakuten, fullSize, sameLetters, acrostic, removeChars, applyRule, describeRule, rotate, visible, rank,
+    normalize, isBlank, isCorrect, stripDakuten, fullSize, sameLetters, units, acrostic, removeChars, applyRule, describeRule, rotate, visible, rank,
     rng, seedOf, messageLetters, fillerAlphabet, makeRemoval, removalReport, makeStencil, stencilReport, acrosticReport
   };
 })();
