@@ -4,74 +4,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Hidden Message Challenge is a web-based educational tool for learning about concealment ciphers (分置式暗号). The project is part of the "100 Security Tools with Generative AI" initiative (Day 036).
+Hidden Message Challenge is an educational web app for concealment ciphers (分置式暗号): acrostics, character removal, position rules and stencils, five puzzles each. It is part of "100 Security Tools with Generative AI" (Day 036). It makes no network requests.
 
-## Running the Application
+## Commands
 
-Pure HTML/CSS/JavaScript with ES6 modules - no build process required.
+- `npm test` runs `node --test` (Node.js 22+, no dependencies). GitHub Actions runs it on push and pull_request.
+- Open `index.html` directly (file://) or serve the folder with any static server. There is no build step.
 
-```bash
-# Start local server (required for ES6 modules)
-python -m http.server 8000
-```
+## Architecture
 
-Access at `http://localhost:8000`. Note: Opening `index.html` directly may fail due to CORS restrictions on ES6 module imports.
+Classic scripts (no ES modules, so file:// works). Load order in `index.html`:
 
-## Architecture Overview
+1. `js/i18n.js` - `I18n` with `ja` and `en` dictionaries (UI text, hints `hint.<id>`, explanations `explain.<id>`), `t(key, values)`, `apply()` for `data-i18n*` attributes, language choice (`?lang=` → localStorage → `navigator.language`)
+2. `js/hidden-core.js` - `HiddenCore`: `normalize`/`isCorrect`, `acrostic`, `removeChars`, `applyRule` (structured rules), `rotate`/`visible` (stencil), `rank`. Each reader returns the positions it read, used for highlighting. Pure, no DOM
+3. `js/hidden-data.js` - `HiddenData`: the twenty puzzles. `answers[0]` must follow from the rule; later entries are other spellings only
+4. `js/progress.js` - `Progress`: stored format `{ kind: { current, solved[], missed[] } }`, validation, recording, summary. Pure
+5. `js/main.js` - `Store` (one localStorage key, safe when storage is blocked), tabs, help `<dialog>`, language button
+6. `js/challenges.js` - one shared flow for the four panels (three hints, check, next, progress dots) plus per-method drawing
+7. `js/results.js` - radar chart (canvas with `aria-label`), totals, rank, share link, image download, reset `<dialog>`
 
-### Entry Point Flow
-1. `index.html` loads `js/main.js` as ES6 module
-2. `HiddenMessageChallenge` class initializes on DOMContentLoaded
-3. Challenge classes are instantiated but data is lazy-loaded on tab switch
-4. Progress persists via LocalStorage with `hiddenMessage_` prefix
+## Rules
 
-### Module Dependencies
-```
-main.js
-├── challenges/*.js     → Each implements: loadChallenge(), checkAnswer(), showHint(), nextChallenge(), reset()
-├── common/storage.js   → Storage class wraps LocalStorage with JSON serialization
-├── common/dataLoader.js → Singleton pattern, caches challenges.json
-└── results/score.js    → ResultsManager aggregates scores from all challenges
-```
+- Reading logic belongs in `js/hidden-core.js`. UI scripts must not re-implement it; rule texts are generated from the rule objects.
+- Never edit an answer to make a test pass: fix the puzzle text, rule or mask instead. `test/data.test.js` checks every puzzle.
+- CSP forbids inline scripts and styles: no inline event handlers, no `style=` attributes, no `.style.` writes, no `innerHTML`, no `alert`/`confirm`/`window.open`.
+- UI text lives in `js/i18n.js` (both languages, same keys). Other scripts, except the puzzle data, contain no Japanese outside comments. Use `\u` escapes in code (the Write tool may turn them into literal characters; check after writing).
+- Colors used for text are the variables in `:root` of `css/style.css`; `test/contrast.test.js` checks them.
+- README tables are generated from the core; `test/readme.test.js` recomputes them and checks that `**bold**` next to CJK punctuation still renders.
 
-### Challenge Class Interface
-All challenge classes share a common interface:
-- `loadChallenge()` - Load current problem and render UI
-- `checkAnswer()` - Validate user input against normalized answer
-- `showHint()` - Display progressive hints
-- `nextChallenge()` - Advance to next problem
-- `setProgress(data)` / `reset()` - Progress state management
+## Tests
 
-### Answer Normalization
-User answers undergo normalization before comparison:
-- Trim whitespace
-- Convert to lowercase
-- Remove long vowel marks (ー)
-- Convert katakana to hiragana (Unicode offset: 0x60)
-
-### Stencil Challenge Specifics
-The stencil challenge uses a two-layer system:
-- Base layer: 5x5 character grid (44px cells)
-- Overlay layer: Draggable/rotatable stencil with `pointerEvents: 'none'`
-- Transform: `translate(-50%, -50%) translate(x*44px, y*44px) rotate(deg)`
-
-### Data Format (`js/data/challenges.json`)
-```javascript
-{
-  "headline": [{ id, text, answer, hint }],           // Line-break separated text
-  "removeChar": [{ id, cipher, hint, removeChars, answer }],
-  "position": [{ id, text, rule, answer, hint }],
-  "stencil": [{ id, grid[][], stencil[][], answer, hint }]  // grid: chars, stencil: 0/1 mask
-}
-```
-
-## Key Implementation Notes
-
-- **XSS Prevention**: Uses `textContent` instead of `innerHTML` for user-facing content
-- **Event Delegation**: Global click handler on document for dynamic progress dots
-- **Radar Chart**: Canvas-based, uses polar coordinate conversion with 12 o'clock as origin
-- **LocalStorage Keys**: `hiddenMessage_{challengeName}_{dataType}`
-
-## Related Documentation
-
-- `TECHNICAL_NOTES.md` - Detailed algorithm explanations (stencil transforms, radar chart math, Unicode handling)
+- `test/core.test.js` - normalization, voicing marks, anagrams, the four readers, stencil rotation and shifting, ranks
+- `test/data.test.js` - every answer follows from its rule; fixed data errors stay fixed
+- `test/progress.test.js` - stored format, broken values, recording, summary
+- `test/html.test.js` - CSP, ARIA, forbidden patterns, script order
+- `test/i18n.test.js` - dictionary keys, no Japanese in English, hints and explanations for every puzzle
+- `test/contrast.test.js` - palette contrast ratios
+- `test/format.test.js` - line lengths and minimum file sizes
+- `test/readme.test.js` - README tables, YAML, heading parity, bold rendering, images, directory tree
