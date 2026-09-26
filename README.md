@@ -276,6 +276,8 @@ hub: true
 - 位置抽出の2つ目のヒントを押すと、暗号文が消えていた（ルールの文面が変わり、ハイライト処理のどの分岐にも当たらなかった）
 - リロードすると各チャレンジの進捗表示が0に戻っていた（成果タブだけは保存された値を表示し、表示が食い違っていた）
 - 問題データ: 除去文字の5問目は「い」が1つ足りなかった。位置抽出の3問目は「2文字後」とあったが、答えは3文字目だった。ステンシルの2問目は穴が1つ多かった。ステンシルの3問目はヒントが「上から順に読む」だったが、回して並べ替える問題だった
+- 成果タブのレーダーチャートで、左右のラベル（ステンシル・除去文字）が画面でも保存した画像でも端で切れていた
+- 画面のとおりに書いても不正解になる答えがあった（ステンシルの5問目で穴から見える大きい「つ」のまま書いた「すとけつこう」と、英語の電文で解説どおり最後のIを1と読んだ「JUNE 1」）。今はどちらも正解にしている
 
 ### 問題と既知解答（日本語の問題）
 
@@ -302,7 +304,7 @@ hub: true
 | `s2` | ステンシル | 180度回して並べ替え | `をわかよむ` | `わかをよむ` |
 | `s3` | ステンシル | 270度回して並べ替え | `さむゆふい` | `さむいふゆ` |
 | `s4` | ステンシル | 270度回す | `きょうあした` | `きょうあした` |
-| `s5` | ステンシル | 180度回して並べ替え | `うけこすつと` | `すとけっこう` |
+| `s5` | ステンシル | 180度回して並べ替え | `うけこすつと` | `すとけっこう` / `すとけつこう` |
 
 ### 問題と既知解答（英語の問題）
 
@@ -320,10 +322,10 @@ hub: true
 | `er3` | 除去文字 | `C`を除く | `BRINGTHEMAP` | `bringthemap` |
 | `er4` | 除去文字 | `I`を除く | `THEPLANHASCHANGED` | `theplanhaschanged` |
 | `er5` | 除去文字 | `B`・`T`を除く | `COMEALONE` | `comealone` |
-| `ep1` | 位置抽出 | 各単語の最初の文字を読め。 | `PershinGsailSfromnYjunei` | `pershingsailsfromnyjunei` |
+| `ep1` | 位置抽出 | 各単語の最初の文字を読め。 | `PershinGsailSfromnYjunei` | `pershingsailsfromnyjunei` / `pershingsailsfromnyjune1` |
 | `ep2` | 位置抽出 | 各単語の最後の文字を読め。 | `late` | `late` |
 | `ep3` | 位置抽出 | 「,」・「.」の直後の英字を読め（空白と記号は数えない）。 | `sOoN` | `soon` |
-| `ep4` | 位置抽出 | 各単語の2文字目を読め。 | `pershingsailsfromnyjunei` | `pershingsailsfromnyjunei` |
+| `ep4` | 位置抽出 | 各単語の2文字目を読め。 | `pershingsailsfromnyjunei` | `pershingsailsfromnyjunei` / `pershingsailsfromnyjune1` |
 | `ep5` | 位置抽出 | 「,」・「.」・「:」・「—」のあと、3番目の英字を読め（空白と記号は数えない）。 | `panelateastendofchapelslides` | `panelateastendofchapelslides` |
 | `es1` | ステンシル | 回さずに重ねる | `SPY` | `spy` |
 | `es2` | ステンシル | 90度回す | `CODE` | `code` |
@@ -379,13 +381,13 @@ npm test
 - Node.js 22以上。依存パッケージはない（`node --test`）
 - GitHub Actionsで、pushとpull_requestのたびに実行する
 - `test/core.test.js`: 答えの比較、濁点、アナグラム、4方式の読み取り（英語の単語の規則を含む）、型紙の回転とずらし、ランク、作成モードの生成と検査（200通りの種で読み戻せること）
-- `test/data.test.js`: 日本語と英語の40問すべてが規則から答えを導けること、直したデータの誤りが戻らないこと
+- `test/data.test.js`: 日本語と英語の40問すべてが規則から答えを導けること、別の書き方として正解にする答えが決めた範囲に収まること、直したデータの誤りが戻らないこと
 - `test/progress.test.js`: 進捗の保存形式、壊れた値の扱い、正解・不正解の記録、集計
-- `test/html.test.js`: CSP・ARIA・禁止する書き方（innerHTML・インラインのハンドラー・ES moduleなど）
-- `test/i18n.test.js`: 日英の辞書のキーの一致、英語に日本語が残らないこと、全問のヒントと解説
+- `test/html.test.js`: CSP・ARIA・禁止する書き方（innerHTML・インラインのハンドラー・ES moduleなど）、共有リンクの宛先
+- `test/i18n.test.js`: 日英の辞書のキーの一致、英語に日本語が残らないこと、全問のヒントと解説、HTMLに書いた初期の文言が辞書と一致すること
 - `test/contrast.test.js`: 配色のコントラスト比
 - `test/format.test.js`: 行の長さと行数
-- `test/readme.test.js`: このREADMEとREADME.en.mdの表の値、構成、画像
+- `test/readme.test.js`: このREADMEとREADME.en.mdの表の値（位置抽出のルールの文面を含む）、構成、画像
 
 ---
 

@@ -160,7 +160,7 @@ const I18n = (() => {
     'hint.s4': '表そのものが自然な文ですが、穴からは意味のある語が2つ続けて見えます。',
     'explain.s4': '270度回すと「きょうあした」＝今日明日。',
     'hint.s5': '回して、並べ替えて、「つ」を小さな「っ」にすると意味のあることばになります。',
-    'explain.s5': '180度回すと「うけこすつと」が見え、並べ替えて「すとけっこう」＝スト決行。',
+    'explain.s5': '180度回すと「うけこすつと」が見え、並べ替えて「すとけっこう」＝スト決行。「つ」を小さくせず「すとけつこう」と答えても正解です。',
     'tab.maker': '作成',
     'set.label': '問題セット',
     'set.ja': '日本語の問題',
@@ -444,7 +444,8 @@ const I18n = (() => {
     'hint.s4': 'The table itself reads as natural text, but the holes also show two meaningful words.',
     'explain.s4': 'Turned 270°, the holes show "kyou ashita" (today and tomorrow).',
     'hint.s5': 'Turn, rearrange, and make one tsu small to get a meaningful phrase.',
-    'explain.s5': 'Turned 180°, the characters rearrange to "suto kekkou" (the strike goes ahead).',
+    'explain.s5':
+      'Turned 180°, the characters rearrange to "suto kekkou" (the strike goes ahead). The spelling with a full-size tsu is also accepted.',
     'tab.maker': 'Maker',
     'set.label': 'Puzzle set',
     'set.ja': 'Japanese puzzles',

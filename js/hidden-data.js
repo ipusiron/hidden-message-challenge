@@ -49,8 +49,9 @@ const HiddenData = (() => {
       mask: ['00001', '10000', '01110', '00000', '00000'], solution: { rotation: 3, anagram: true }, answers: ['さむいふゆ'] },
     { id: 's4', grid: ['きょうはい', 'いてんきで', 'すねあした', 'もはれると', 'いいですね'],
       mask: ['00001', '00001', '00101', '00100', '00100'], solution: { rotation: 3 }, answers: ['きょうあした'] },
+    // s5: the holes show a full-size つ, so writing it as seen is also accepted
     { id: 's5', grid: ['あいうえお', 'かきくけこ', 'さしすせそ', 'たちつてと', 'なにぬねの'],
-      mask: ['00000', '10100', '00100', '11000', '00100'], solution: { rotation: 2, anagram: true }, answers: ['すとけっこう'] }
+      mask: ['00000', '10100', '00100', '11000', '00100'], solution: { rotation: 2, anagram: true }, answers: ['すとけっこう', 'すとけつこう'] }
   ].map(s => ({ ...s, grid: s.grid.map(row => [...row]), mask: s.mask.map(row => [...row].map(Number)) }));
 
   const SETS = { headline: HEADLINE, removeChar: REMOVE, position: POSITION, stencil: STENCIL };
@@ -61,13 +62,13 @@ const HiddenData = (() => {
   const EN_HEADLINE = [
     { id: 'ea1', text: 'Hope the weather holds this week.\nI finally fixed the old bicycle.\nDo write when you get the chance.\n' +
       'Every day here is much the same.', answers: ['hide'] },
-    { id: 'ea2', text: 'Remember to water the garden.\nUncle Tom says hello to everyone.\nNext month we visit the coast.\nNothing else much has happened.\n' +
+    { id: 'ea2', text: 'Remember to water the garden.\nUncle Tom says hello to everyone.\nNext month we visit the coast.\nNot much else has happened.\n' +
       'Oliver passed his driving test.\nWrite back soon.', answers: ['runnow'] },
     { id: 'ea3', text: 'Nothing new to report from the farm.\nOur lambs arrived early this spring.\nRain has kept us indoors most days.\n' +
       'The roof still leaks in the barn.\nHannah sends her love to the children.\nGrandfather is walking again.\n' +
       'All of us hope to see you at Easter.\nTell Peter the fence is mended.\nEveryone asks after you.', answers: ['northgate'] },
     { id: 'ea4', source: true, text: 'Elizabeth it is in vain you say\n“Love not” — thou sayest it in so sweet a way:\nIn vain those words from ' +
-      'thee or L. E. L.\nZantippe\'s talents had enforced so well:\nAh! if that language from thy heart arise,\n' +
+      'thee or L. E. L.\nZantippe’s talents had enforced so well:\nAh! if that language from thy heart arise,\n' +
       'Breathe it less gently forth — and veil thine eyes.\nEndymion, recollect, when Luna tried\nTo cure his love — ' +
       'was cured of all beside —\nHis folly — pride — and passion — for he died.', answers: ['elizabeth'] },
     { id: 'ea5', source: true, text: 'A boat, beneath a sunny sky,\nLingering onward dreamily\nIn an evening of July——\n\nChildren three that ' +
@@ -91,13 +92,13 @@ const HiddenData = (() => {
   const EN_POSITION = [
     { id: 'ep1', source: true, text: 'President’s embargo ruling should have immediate notice. Grave situation affecting international law. ' +
       'Statement foreshadows ruin of many neutrals. Yellow journals unifying national excitement immensely.',
-      rule: { kind: 'words', index: 0 }, answers: ['pershingsailsfromnyjunei'] },
+      rule: { kind: 'words', index: 0 }, answers: ['pershingsailsfromnyjunei', 'pershingsailsfromnyjune1'] },
     { id: 'ep2', text: 'Still extra quiet here.', rule: { kind: 'words', index: -1 }, answers: ['late'] },
-    { id: 'ep3', text: 'Dear Ann, spring is here. Our garden is green, orange lilies bloom. Next week we travel.',
+    { id: 'ep3', text: 'Dear Ann, spring is here. Our garden is green, orange lilies in bloom. Next week we travel.',
       rule: { kind: 'mark', marks: [',', '.'], offset: 1, lettersOnly: true }, answers: ['soon'] },
     { id: 'ep4', source: true, text: 'Apparently neutrals’ protest is thoroughly discounted and ignored. Isman hard hit. Blockade issue affects ' +
       'pretext for embargo on by-products, ejecting suets and vegetable oils.',
-      rule: { kind: 'words', index: 1 }, answers: ['pershingsailsfromnyjunei'] },
+      rule: { kind: 'words', index: 1 }, answers: ['pershingsailsfromnyjunei', 'pershingsailsfromnyjune1'] },
     { id: 'ep5', source: true, text: 'WORTHIE SIR JOHN—Hope, that is yᵉ beste comfort of yᵉ afflictyd, cannot much, I fear me, help you now. That I ' +
       'wolde saye to you, is this only: if ever I may be able to requite that I do owe you, stand not upon asking of ' +
       'me. ’Tis not much I can do: but what I can do, bee you verie sure I wille. I knowe that, if dethe comes, if ' +
@@ -111,7 +112,8 @@ const HiddenData = (() => {
 
   // Stencils: letters placed row by row; the mask is stored turned back, so `solution.rotation` reveals the message
   const EN_STENCIL = [
-    { id: 'es1', grid: ['UNTJW', 'YBFTS', 'YJJTP', 'GRXQY', 'ASQEB'], mask: ['00000', '00001', '00001', '00001', '00000'],
+    // es1: the holes sit one column in from the edge, so some show through where the card is first laid (one right, one up)
+    { id: 'es1', grid: ['UNTJW', 'YBFST', 'YJJPT', 'GRXYQ', 'ASQEB'], mask: ['00000', '00010', '00010', '00010', '00000'],
       solution: { rotation: 0 }, answers: ['spy'] },
     { id: 'es2', grid: ['CUCOY', 'HRLDU', 'RIBUE', 'RRQYK', 'ACTRP'], mask: ['00100', '11000', '00000', '00000', '10000'],
       solution: { rotation: 1 }, answers: ['code'] },
@@ -125,7 +127,7 @@ const HiddenData = (() => {
 
   const EN = { headline: EN_HEADLINE, removeChar: EN_REMOVE, position: EN_POSITION, stencil: EN_STENCIL };
   const BY_SET = { ja: SETS, en: EN };
-  return { HEADLINE, REMOVE, POSITION, STENCIL, SETS, EN, BY_SET };
+  return { BY_SET };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = HiddenData;

@@ -110,6 +110,15 @@ test('maker: removal ciphers always read back', () => {
   assert.equal(C.makeRemoval('', ['b'], { rate: 0.5, rand: C.rng(1) }), '');
   assert.equal(C.makeRemoval('ab', [], { rate: 0.5, rand: C.rng(1) }), '');
   assert.equal(C.makeRemoval('a b', ['x'], { rate: 0, rand: C.rng(1) }), 'abx', 'spaces are dropped; one filler even at rate 0');
+  // Latin fillers follow a one-case message, so capitals do not give them away
+  for (let seed = 1; seed <= 50; seed++) {
+    const lower = C.makeRemoval('meet at dawn', ['X', 'Q'], { rate: 0.4, rand: C.rng(seed) });
+    assert.doesNotMatch(lower, /[A-Z]/, lower);
+    assert.equal(C.removeChars(lower, ['X', 'Q']).plain, 'meetatdawn');
+    assert.doesNotMatch(C.makeRemoval('MEET', ['x'], { rate: 0.4, rand: C.rng(seed) }), /[a-z]/);
+  }
+  assert.equal(C.makeRemoval('Ab', ['x'], { rate: 0, rand: C.rng(1) }), 'Abx', 'mixed case: the filler stays as typed');
+  assert.equal(C.makeRemoval('あい', ['X'], { rate: 0, rand: C.rng(1) }), 'あいX', 'no Latin letters: the filler stays as typed');
 });
 
 test('maker: removal findings', () => {
@@ -158,6 +167,8 @@ test('maker: acrostic report while writing', () => {
   assert.equal(C.acrosticReport('abcd', 'Apple\nBanana').next, 'c');
   assert.deepEqual(C.acrosticReport('ab', 'Apple\nBanana').findings.map(f => f.key.split('.').pop()), ['done'], 'case-insensitive');
   assert.deepEqual(C.acrosticReport('ab', 'Apple').findings.map(f => f.key.split('.').pop()), ['count']);
+  assert.equal(C.acrosticReport('ab', 'Apple').findings[0].level, 'info', 'fewer lines than letters: still writing');
+  assert.equal(C.acrosticReport('a', ['Apple', 'Banana'].join('\n')).findings[0].level, 'warning', 'more lines than letters');
   assert.equal(C.acrosticReport('あい', 'アサ\nいぬ').findings.at(-1).key, 'maker.acrostic.done', 'katakana counts as hiragana');
   assert.equal(C.acrosticReport('きって', 'きのう\nつき\nてがみ').findings.at(-1).key, 'maker.acrostic.done', 'small kana count as full size');
   const withDigit = C.acrosticReport('meet at 5', ['Many', 'Every', 'Each', 'Time', 'All', 'Ten'].join('\n'));
@@ -199,7 +210,7 @@ test('surrogate pairs, case-insensitive removal and unsupported rules', () => {
   assert.deepEqual(C.removeChars('BMEBET', ['b']), { plain: 'MEET', removed: [0, 3] }, 'lowercase b removes B');
   assert.equal(C.removeChars('けあケ', ['ケ']).plain, 'あ', 'katakana removes hiragana too');
   const unsupported = [{ kind: 'words', index: -2 }, { kind: 'mark', marks: ['.'], offset: -1, lettersOnly: true },
-    { kind: 'mark', marks: ['.'], offset: -2 }];
+    { kind: 'mark', marks: ['.'], offset: -2 }, { kind: 'mark', marks: ['.'], offset: 0 }, { kind: 'nope' }];
   for (const rule of unsupported) {
     assert.throws(() => C.applyRule('a. b', rule), JSON.stringify(rule));
     assert.throws(() => C.describeRule(rule, k => k), JSON.stringify(rule));

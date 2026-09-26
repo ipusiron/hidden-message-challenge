@@ -5,10 +5,13 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const C = require('../js/hidden-core.js');
 const D = require('../js/hidden-data.js');
+const I18n = require('../js/i18n.js');
 const root = path.join(__dirname, '..');
 const readme = { ja: fs.readFileSync(path.join(root, 'README.md'), 'utf8'), en: fs.readFileSync(path.join(root, 'README.en.md'), 'utf8') };
 const cells = line => line.split('|').slice(1, -1).map(c => c.trim());
 const unquote = s => s.replace(/^`|`$/g, '');
+// The dictionary lookup of the page (I18n.t) for a given language
+const tr = lang => (key, values = {}) => I18n[lang][key].replace(/\{(\w+)\}/g, (m, name) => (name in values ? String(values[name]) : m));
 
 // Rows of the first table between `heading` and the next heading (header and separator removed)
 function tableAfter(text, heading) {
@@ -37,6 +40,7 @@ test('puzzle tables match the core in both READMEs', () => {
       assert.equal(unquote(row[0]), p.id, `${lang} ${set} row ${i}`);
       assert.equal(unquote(row[3]), read, `${lang} ${p.id}`);
       assert.deepEqual(row[4].split(' / ').map(unquote), p.answers, `${lang} ${p.id}`);
+      if (kind === 'position') assert.equal(row[2], C.describeRule(p.rule, tr(lang)), `${lang} ${p.id} rule`);
     });
   }
 });
@@ -98,9 +102,7 @@ test('images exist and assets holds only referenced PNGs', () => {
 });
 
 test('the directory tree lists every tracked file with a description', () => {
-  const tracked = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean)
-    .concat(['test/readme.test.js', 'README.en.md', 'js/maker.js', 'assets/en/screenshot.png', 'assets/en/screenshot2.png',
-      'assets/screenshot2.png', 'assets/screenshot3.png']);
+  const tracked = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean);
   for (const lang of ['ja', 'en']) {
     const block = readme[lang].slice(readme[lang].indexOf(lang === 'ja' ? '## 📁 ディレクトリー構造' : '## 📁 Directory Structure'));
     const tree = block.slice(block.indexOf('```') + 3, block.indexOf('```', block.indexOf('```') + 3));
@@ -119,7 +121,6 @@ test('removed claims and quotations stay removed', () => {
 });
 
 test('quoted works are listed with their sources', () => {
-  const I18n = require('../js/i18n.js');
   for (const [lang, heading] of [['ja', '### 引用している作品'], ['en', '### Quoted works']]) {
     const section = readme[lang].slice(readme[lang].indexOf(heading), readme[lang].indexOf('###', readme[lang].indexOf(heading) + 4));
     for (const id of ['h4', 'h5']) assert.ok(section.includes(I18n[lang][`source.${id}`].replace(/^(出典|Source): /, '')), `${lang} ${id}`);
