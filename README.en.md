@@ -16,6 +16,7 @@ Text that looks ordinary can carry a hidden "real message". This tool trains you
 
 Twenty puzzles cover **four methods**: acrostic, character removal, position rules and stencils.
 Each puzzle has three levels of hints, and a correct answer shows the hidden text with an explanation.
+There is also an English puzzle set (including historical examples such as a World War I cable and a Lewis Carroll poem) and a **maker** for building your own ciphers.
 
 Progress is saved in your browser, and the Results tab shows a radar chart and a rank.
 The sense of noticing that small something is off matters in modern cybersecurity too, and these classic techniques are a good way to build it.
@@ -42,6 +43,14 @@ The sense of noticing that small something is off matters in modern cybersecurit
 >
 > *Stencil (Japanese UI): turn and lay the card, and characters show through the holes*
 
+> ![English puzzle set, position challenge: the letter said to have been sent to Sir John Trevanion, with the third letter after each punctuation mark highlighted](assets/en/screenshot2.png)
+>
+> *English puzzle set: the letter said to have been sent to Sir John Trevanion (third letter after each punctuation mark)*
+
+> ![Maker in Japanese: a stencil generated to hide a message, with the holes highlighted](assets/screenshot3.png)
+>
+> *Maker (Japanese UI): build a stencil from a message and check that it reads back*
+
 ---
 
 ## 🎯 Features
@@ -52,7 +61,9 @@ The sense of noticing that small something is off matters in modern cybersecurit
 - **Stencil controls**: lay the card, move it up, down, left and right, turn it 90° at a time. The characters showing through are also given as text
 - **Saved progress and puzzle selection**: select a progress dot to go to that puzzle. Reloading continues where you left off
 - **Results**: radar chart, solved count, rank, sharing on X and saving the result as an image
-- **Japanese and English UI** (the puzzles themselves are in Japanese; answer in hiragana)
+- **Japanese and English UI** (switched separately from the puzzle set)
+- **English puzzle set**: five puzzles for each method. Historical examples (Carroll, Poe, a World War I cable, the Trevanion letter) come with sources and caveats
+- **Maker**: build your own acrostic, removal or stencil cipher, and check that it reads back and does not stand out
 
 ---
 
@@ -105,7 +116,9 @@ The picture word is a pun that names the characters to remove, for example "kesh
 
 ## 📜 History and examples
 
-- During the English Civil War, a letter to the captured Royalist Sir John Trevanion is said to have hidden escape directions in the third letter after each punctuation mark. The "third character after a mark" rule in this tool follows that pattern
+- During the English Civil War, a letter to the captured Royalist Sir John Trevanion is said to have hidden escape directions in the third letter after each punctuation mark. The story first appeared in an 1863 magazine article, and the real John Trevanion is recorded as killed in 1643, which does not fit a story set in 1648, so it is unlikely to be history (English position puzzle 5)
+- In **World War I**, a cable disguised as a press report hid "PERSHING SAILS FROM NY JUNE I" in the first letters, and another in the second letters, of its words. David Kahn's The Codebreakers quotes them; the sender is unknown (English position puzzles 1 and 4)
+- In poetry, Lewis Carroll hid Alice Pleasance Liddell's name in the line heads of the closing poem of Through the Looking-Glass, and Poe hid Elizabeth's name in a poem written in his cousin's album (English acrostic puzzles 4 and 5)
 - Spies and **some wartime messages** also hid information inside ordinary text
 - The **turning grille** uses a card with holes like a stencil, but structurally it is closer to a transposition cipher
 - Today there are also social-steganography uses that hide messages in posts and image captions
@@ -133,11 +146,13 @@ Techniques such as **chaffing and winnowing** can be seen as a modern descendant
 
 ## 📖 Usage
 
-1. Choose a method with the tabs (acrostic, removal, position, stencil)
-2. Read the text, type the answer in hiragana and press "Check" (katakana, width and spaces do not matter)
-3. If you are stuck, press "Hint". Each press gives the next hint (three levels)
-4. A correct answer shows the hidden text and an explanation. Go on with "Next puzzle" or a progress dot
-5. The Results tab shows the overall result, and lets you share it on X, save it as an image or start over
+1. Choose Japanese or English puzzles with "Puzzle set" (progress is saved for each set)
+2. Choose a method with the tabs (acrostic, removal, position, stencil)
+3. Read the text, type the answer and press "Check" (hiragana for Japanese puzzles, letters for English ones; katakana, width, letter case and spaces do not matter)
+4. If you are stuck, press "Hint". Each press gives the next hint (three levels)
+5. A correct answer shows the hidden text and an explanation. Go on with "Next puzzle" or a progress dot
+6. The Results tab shows the result of the chosen puzzle set, and lets you share it on X, save it as an image or start over
+7. Build your own ciphers in the Maker tab
 
 The tool works when the file is opened directly (file://) and when served from a web server.
 
@@ -198,10 +213,12 @@ All four reading methods live in `js/hidden-core.js`; answer checking, hint high
 Rule texts are built from the structure of the puzzle data, so a rule and its answer cannot drift apart.
 
 - **Answer comparison**: width, spaces, katakana versus hiragana, letter case and the long vowel mark are ignored. Voicing marks are not (other spellings, such as old kana readings, are listed in the puzzle data)
-- **Acrostic**: the first character of each line. When a line starts with a kanji, the puzzle data gives the word reading
+- **Acrostic**: the first letter of each line (leading quotes and other symbols are skipped). When a line starts with a kanji, the puzzle data gives the word reading
 - **Removal**: what is left after removing every given character
 - **Position**: the character a fixed number of places before or after each mark (such as a full stop or comma), or the first and last characters of the parts separated by wide spaces
 - **Stencil**: turn the card clockwise 90° at a time and shift it; the characters under the holes are read row by row. For puzzles that need rearranging (anagrams), the tests check that the visible characters and the answer use the same letters
+- **Position (English)**: a given letter of each word (first, second or last). Words are separated by spaces; words joined by an apostrophe or hyphen count as one. Puzzles that count after punctuation count letters only (not spaces or symbols)
+- **Maker**: the random choices come from a seed made from the method, the message and the other inputs, so the same input gives the same result ("Make again" changes it). A made cipher is shown only after it has been read back to the message with the same functions the puzzles use
 
 Errors in the previous version and their fixes:
 
@@ -209,9 +226,9 @@ Errors in the previous version and their fixes:
 - Reloading reset the progress shown on each challenge tab to zero (only the Results tab read the saved values, so the two disagreed)
 - Puzzle data: removal puzzle 5 lacked one character; position puzzle 3 said "2 after" but the answer needs the third character; stencil puzzle 2 had one hole too many; the hint for stencil puzzle 3 said "read from the top" although it needs turning and rearranging
 
-### Puzzles and known answers
+### Puzzles and known answers (Japanese set)
 
-The twenty puzzles in `js/hidden-data.js` read with `js/hidden-core.js`. The tests check that the characters read give the first accepted answer (for anagrams, that they use the same letters).
+The twenty Japanese puzzles in `js/hidden-data.js` read with `js/hidden-core.js`. The tests check that the characters read give the first accepted answer (for anagrams, that they use the same letters).
 
 | Puzzle | Method | How | Characters read | Accepted answers |
 | --- | --- | --- | --- | --- |
@@ -236,6 +253,33 @@ The twenty puzzles in `js/hidden-data.js` read with `js/hidden-core.js`. The tes
 | `s4` | Stencil | Turn 270° | `きょうあした` | `きょうあした` |
 | `s5` | Stencil | Turn 180° and rearrange | `うけこすつと` | `すとけっこう` |
 
+### Puzzles and known answers (English set)
+
+The twenty English puzzles. Answers are letters; case and spaces do not matter.
+
+| Puzzle | Method | How | Characters read | Accepted answers |
+| --- | --- | --- | --- | --- |
+| `ea1` | Acrostic | Line heads | `HIDE` | `hide` |
+| `ea2` | Acrostic | Line heads | `RUNNOW` | `runnow` |
+| `ea3` | Acrostic | Line heads | `NORTHGATE` | `northgate` |
+| `ea4` | Acrostic | Line heads | `ELIZABETH` | `elizabeth` |
+| `ea5` | Acrostic | Line heads | `ALICEPLEASANCELIDDELL` | `alicepleasanceliddell` |
+| `er1` | Removal | Remove `B` | `MEETMEATNOON` | `meetmeatnoon` |
+| `er2` | Removal | Remove `T` | `RUNHOMENOW` | `runhomenow` |
+| `er3` | Removal | Remove `C` | `BRINGTHEMAP` | `bringthemap` |
+| `er4` | Removal | Remove `I` | `THEPLANHASCHANGED` | `theplanhaschanged` |
+| `er5` | Removal | Remove `B`, `T` | `COMEALONE` | `comealone` |
+| `ep1` | Position | Read the first letter of each word. | `PERSHINGSAILSFROMNYJUNEI` | `pershingsailsfromnyjunei` |
+| `ep2` | Position | Read the last letter of each word. | `late` | `late` |
+| `ep3` | Position | Read the first letter after each "," or "." (spaces and symbols are not counted). | `sOoN` | `soon` |
+| `ep4` | Position | Read letter 2 of each word. | `pershingsailsfromnyjunei` | `pershingsailsfromnyjunei` |
+| `ep5` | Position | Read letter 3 after each "," or "." or ":" or "—", counting letters only. | `panelateastendofchapelslides` | `panelateastendofchapelslides` |
+| `es1` | Stencil | Lay without turning | `SPY` | `spy` |
+| `es2` | Stencil | Turn 90° | `CODE` | `code` |
+| `es3` | Stencil | Turn 180° | `SECRET` | `secret` |
+| `es4` | Stencil | Turn 180° and rearrange | `TINSEL` | `silent` |
+| `es5` | Stencil | Turn 90° | `ATTACKATDAWN` | `attackatdawn` |
+
 ### Quoted works
 
 Two acrostic puzzles quote the works below. The page shows the source under the puzzle text.
@@ -243,9 +287,16 @@ Two acrostic puzzles quote the works below. The page shows the source under the 
 - Acrostic puzzle 4: Tanikawa Shuntaro, "Akubi"
 - Acrostic puzzle 5: Tsugumi Ohba and Takeshi Obata, Death Note (Shueisha)
 
+Five puzzles in the English set are historical texts. Their sources are also shown on the page.
+
+- Acrostic puzzle 4: Edgar Allan Poe, untitled album poem (c. 1829); text as given by The Edgar Allan Poe Society of Baltimore
+- Acrostic puzzle 5: Lewis Carroll, closing poem of Through the Looking-Glass (1871); text as in the 1872 Macmillan printing
+- Position puzzles 1 and 4: World War I messages quoted in David Kahn, The Codebreakers (1967)
+- Position puzzle 5: S. Baring-Gould, Curiosities of Olden Times (rev. ed. 1896; first printed in Once a Week, 1863)
+
 ### Ranks
 
-The rank depends on the overall solved rate (the share of the twenty puzzles solved).
+The rank depends on the overall solved rate (for each puzzle set, the share of its twenty puzzles solved).
 
 | Rank | Solved rate | Title |
 | --- | --- | --- |
@@ -262,7 +313,8 @@ The rank depends on the overall solved rate (the share of the twenty puzzles sol
 - No network access (CSP `default-src 'none'`). Answers are checked in the browser
 - The CSP uses `script-src 'self'` and `style-src 'self'`; there are no inline scripts or styles
 - The page is built with DOM `textContent` and nothing is interpreted as HTML
-- localStorage holds only the progress and the display language (broken values are discarded, and the tool works when storage is unavailable)
+- localStorage holds only the progress, the display language and the chosen puzzle set (broken values are discarded, and the tool works when storage is unavailable)
+- Text typed into the maker never leaves the browser and is not stored
 - The answers are in the puzzle data in plain text. This is self-study material, so being able to see them in the developer tools is accepted
 
 ---
@@ -275,8 +327,8 @@ npm test
 
 - Node.js 22 or later. No dependencies (`node --test`)
 - GitHub Actions runs them on every push and pull request
-- `test/core.test.js`: answer comparison, voicing marks, anagrams, the four reading methods, turning and shifting the card, ranks
-- `test/data.test.js`: every puzzle's answer follows from its rule, and the fixed data errors stay fixed
+- `test/core.test.js`: answer comparison, voicing marks, anagrams, the four reading methods (including the English word rules), turning and shifting the card, ranks, and the maker's generators and checks (reading back for 200 seeds)
+- `test/data.test.js`: all 40 Japanese and English answers follow from their rules, and the fixed data errors stay fixed
 - `test/progress.test.js`: the saved format, broken values, recording answers and the summary
 - `test/html.test.js`: CSP, ARIA and forbidden patterns (innerHTML, inline handlers, ES modules and so on)
 - `test/i18n.test.js`: matching Japanese and English keys, no Japanese left in English, hints and explanations for every puzzle
@@ -290,42 +342,45 @@ npm test
 
 ```
 hidden-message-challenge/
-├── .github/                # GitHub settings
-│   └── workflows/          # GitHub Actions workflows
-│       └── test.yml        # Runs npm test on push and pull_request
-├── assets/                 # Images
-│   ├── en/                 # Screenshots of the English UI
-│   │   └── screenshot.png  # English position challenge (kutsukamuri)
-│   ├── screenshot.png      # Acrostic with hint 2
-│   └── screenshot2.png     # Stencil turned and laid
-├── css/                    # Styles
-│   └── style.css           # Page styles (colors in :root variables)
-├── js/                     # Scripts (classic scripts)
-│   ├── challenges.js       # The four challenge panels (shared flow, per-method drawing)
-│   ├── hidden-core.js      # The four reading methods and answer comparison (no DOM)
-│   ├── hidden-data.js      # The twenty puzzles
-│   ├── i18n.js             # Japanese and English messages, hints, explanations, language switching
-│   ├── main.js             # Saved progress, tabs, help and language switching
-│   ├── progress.js         # Progress format and summary (no DOM)
-│   └── results.js          # Results tab (radar chart, sharing, image, reset)
-├── test/                   # Automated tests (node --test)
-│   ├── contrast.test.js    # Color contrast ratios
-│   ├── core.test.js        # Reading methods and answer comparison
-│   ├── data.test.js        # Every answer follows from its rule
-│   ├── format.test.js      # Line lengths and file sizes
-│   ├── html.test.js        # CSP, ARIA and forbidden patterns
-│   ├── i18n.test.js        # Japanese and English messages
-│   ├── progress.test.js    # Saved progress and summary
-│   └── readme.test.js      # README tables, structure and images
-├── .gitignore              # Files ignored by Git
-├── .nojekyll               # Disables Jekyll on GitHub Pages
-├── CLAUDE.md               # Notes for Claude Code (English)
-├── LICENSE                 # MIT license
-├── README.en.md            # English README
-├── README.md               # Japanese README
-├── TECHNICAL_NOTES.md      # Technical notes (Japanese)
-├── index.html              # Page with five tabs
-└── package.json            # npm test configuration (no dependencies)
+├── .github/                 # GitHub settings
+│   └── workflows/           # GitHub Actions workflows
+│       └── test.yml         # Runs npm test on push and pull_request
+├── assets/                  # Images
+│   ├── en/                  # Screenshots of the English UI
+│   │   ├── screenshot.png   # English position challenge (kutsukamuri)
+│   │   └── screenshot2.png  # English puzzle (the Trevanion letter)
+│   ├── screenshot.png       # Acrostic with hint 2
+│   ├── screenshot2.png      # Stencil turned and laid
+│   └── screenshot3.png      # Maker: a generated stencil
+├── css/                     # Styles
+│   └── style.css            # Page styles (colors in :root variables)
+├── js/                      # Scripts (classic scripts)
+│   ├── challenges.js        # The four challenge panels (shared flow, per-method drawing)
+│   ├── hidden-core.js       # Reading methods, answer comparison, maker generators and checks (no DOM)
+│   ├── hidden-data.js       # Japanese and English puzzles (20 each)
+│   ├── i18n.js              # Japanese and English messages, hints, explanations, language switching
+│   ├── main.js              # Saved progress, tabs, help, puzzle set and language switching
+│   ├── maker.js             # Maker tab
+│   ├── progress.js          # Progress format and summary (no DOM)
+│   └── results.js           # Results tab (radar chart, sharing, image, reset)
+├── test/                    # Automated tests (node --test)
+│   ├── contrast.test.js     # Color contrast ratios
+│   ├── core.test.js         # Reading methods, answer comparison and the maker
+│   ├── data.test.js         # Every answer follows from its rule (40 puzzles)
+│   ├── format.test.js       # Line lengths and file sizes
+│   ├── html.test.js         # CSP, ARIA and forbidden patterns
+│   ├── i18n.test.js         # Japanese and English messages
+│   ├── progress.test.js     # Saved progress and summary
+│   └── readme.test.js       # README tables, structure and images
+├── .gitignore               # Files ignored by Git
+├── .nojekyll                # Disables Jekyll on GitHub Pages
+├── CLAUDE.md                # Notes for Claude Code (English)
+├── LICENSE                  # MIT license
+├── README.en.md             # English README
+├── README.md                # Japanese README
+├── TECHNICAL_NOTES.md       # Technical notes (Japanese)
+├── index.html               # Page with six tabs
+└── package.json             # npm test configuration (no dependencies)
 ```
 
 ---

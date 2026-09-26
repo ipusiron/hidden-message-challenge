@@ -19,9 +19,13 @@ function tableAfter(text, heading) {
   return lines.slice(0, end).filter(l => l.startsWith('|')).slice(2).map(cells);
 }
 
-test('puzzle table matches the core in both READMEs', () => {
-  const puzzles = Object.entries(D.SETS).flatMap(([kind, list]) => list.map(p => ({ kind, p })));
-  for (const [lang, heading] of [['ja', '### 問題と既知解答'], ['en', '### Puzzles and known answers']]) {
+test('puzzle tables match the core in both READMEs', () => {
+  const HEADINGS = {
+    ja: { ja: '### 問題と既知解答（日本語の問題）', en: '### 問題と既知解答（英語の問題）' },
+    en: { ja: '### Puzzles and known answers (Japanese set)', en: '### Puzzles and known answers (English set)' }
+  };
+  for (const [lang, set, heading] of Object.entries(HEADINGS).flatMap(([l, h]) => Object.entries(h).map(([k, v]) => [l, k, v]))) {
+    const puzzles = Object.entries(D.BY_SET[set]).flatMap(([kind, list]) => list.map(p => ({ kind, p })));
     const rows = tableAfter(readme[lang], heading);
     assert.equal(rows.length, 20, lang);
     rows.forEach((row, i) => {
@@ -30,7 +34,7 @@ test('puzzle table matches the core in both READMEs', () => {
         : kind === 'removeChar' ? C.removeChars(p.cipher, p.remove).plain
           : kind === 'position' ? C.applyRule(p.reading || p.text, p.rule).plain
             : C.visible(p.grid, p.mask, p.solution).plain;
-      assert.equal(unquote(row[0]), p.id, `${lang} row ${i}`);
+      assert.equal(unquote(row[0]), p.id, `${lang} ${set} row ${i}`);
       assert.equal(unquote(row[3]), read, `${lang} ${p.id}`);
       assert.deepEqual(row[4].split(' / ').map(unquote), p.answers, `${lang} ${p.id}`);
     });
@@ -95,7 +99,8 @@ test('images exist and assets holds only referenced PNGs', () => {
 
 test('the directory tree lists every tracked file with a description', () => {
   const tracked = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean)
-    .concat(['test/readme.test.js', 'README.en.md', 'assets/en/screenshot.png', 'assets/screenshot2.png']);
+    .concat(['test/readme.test.js', 'README.en.md', 'js/maker.js', 'assets/en/screenshot.png', 'assets/en/screenshot2.png',
+      'assets/screenshot2.png', 'assets/screenshot3.png']);
   for (const lang of ['ja', 'en']) {
     const block = readme[lang].slice(readme[lang].indexOf(lang === 'ja' ? '## 📁 ディレクトリー構造' : '## 📁 Directory Structure'));
     const tree = block.slice(block.indexOf('```') + 3, block.indexOf('```', block.indexOf('```') + 3));
@@ -118,5 +123,7 @@ test('quoted works are listed with their sources', () => {
   for (const [lang, heading] of [['ja', '### 引用している作品'], ['en', '### Quoted works']]) {
     const section = readme[lang].slice(readme[lang].indexOf(heading), readme[lang].indexOf('###', readme[lang].indexOf(heading) + 4));
     for (const id of ['h4', 'h5']) assert.ok(section.includes(I18n[lang][`source.${id}`].replace(/^(出典|Source): /, '')), `${lang} ${id}`);
+    const authors = lang === 'ja' ? ['ポー', 'キャロル', 'カーン', 'ベアリング＝グールド'] : ['Poe', 'Carroll', 'Kahn', 'Baring-Gould'];
+    for (const name of authors) assert.ok(section.includes(name), `${lang} ${name}`);
   }
 });

@@ -59,15 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ---------- Position rules ----------
-  function ruleText(rule) {
-    if (rule.kind === 'mark') {
-      const marks = rule.marks.map(mark => I18n.t('rule.mark', { mark })).join(I18n.t('rule.or'));
-      if (rule.offset === -1) return I18n.t('rule.before1', { marks });
-      return I18n.t(rule.offset === 1 ? 'rule.after1' : 'rule.afterN', { marks, n: rule.offset });
-    }
-    const text = I18n.t(rule.order === 'last' ? 'rule.last' : 'rule.firstLast');
-    return rule.stripDakuten ? I18n.t('rule.withDakuten', { rule: text }) : text;
-  }
+  const ruleText = rule => HiddenCore.describeRule(rule, (key, values) => I18n.t(key, values));
 
   const position = {
     plain: p => HiddenCore.applyRule(p.reading || p.text, p.rule).plain,
@@ -145,9 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const hintList = form.querySelector('.hint-list');
     const explain = form.querySelector('.explain');
     const dots = panel.querySelector('.progress-dots');
-    const puzzles = HiddenData.SETS[kind];
+    const puzzles = () => Store.puzzles(kind);       // follows the chosen puzzle set
     const view = { index: 0, hints: [], feedback: null, solved: false, highlight: false };
-    const puzzle = () => puzzles[view.index];
+    const puzzle = () => puzzles()[view.index];
 
     function drawStatus() {
       feedback.textContent = view.feedback ? I18n.t(view.feedback.key) : '';
@@ -160,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawProgress() {
       const state = Store.state;
-      dots.replaceChildren(...puzzles.map((p, i) => {
+      dots.replaceChildren(...puzzles().map((p, i) => {
         const dot = Progress.dotState(state, kind, i);
         const button = el('button', `dot dot-${dot}` + (i === view.index ? ' dot-current' : ''));
         button.type = 'button';
@@ -172,12 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => load(i));
         return button;
       }));
-      panel.querySelector('.progress-count').textContent = I18n.t('common.count', { solved: state[kind].solved.length, total: puzzles.length });
+      panel.querySelector('.progress-count').textContent = I18n.t('common.count', { solved: state[kind].solved.length, total: puzzles().length });
       panel.querySelector('.progress-current').textContent = I18n.t('common.current', { n: view.index + 1 });
     }
 
     function draw() {
       spec.render(puzzle(), view);
+      input.placeholder = I18n.t(Store.set === 'en' ? 'common.placeholderEn' : 'common.placeholder');
       source.hidden = !puzzle().source;
       source.textContent = puzzle().source ? I18n.t(`source.${puzzle().id}`) : '';
       drawStatus();
@@ -222,10 +215,11 @@ document.addEventListener('DOMContentLoaded', () => {
       draw();
     });
 
-    form.querySelector('.next-button').addEventListener('click', () => load((view.index + 1) % puzzles.length));
+    form.querySelector('.next-button').addEventListener('click', () => load((view.index + 1) % puzzles().length));
     document.addEventListener('languagechange', draw);
     document.addEventListener('progresschange', drawProgress);
     document.addEventListener('progressreset', () => load(0));
+    document.addEventListener('setchange', () => load(Store.state[kind].current));
     load(Store.state[kind].current);
     return { view, draw };
   }

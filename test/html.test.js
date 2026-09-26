@@ -27,7 +27,7 @@ test('no inline handlers, inline styles, inline scripts or modules', () => {
 
 test('tabs, dialogs, labels and links', () => {
   assert.match(html, /role="tablist"/);
-  for (const id of ['headline', 'removeChar', 'position', 'stencil', 'results']) {
+  for (const id of ['headline', 'removeChar', 'position', 'stencil', 'results', 'maker']) {
     assert.match(html, new RegExp(`role="tab" id="tab-${id}" aria-controls="${id}" aria-selected="(true|false)"`));
     assert.match(html, new RegExp(`<section id="${id}" class="tab-panel[^"]*" role="tabpanel" aria-labelledby="tab-${id}"`));
   }
@@ -36,6 +36,8 @@ test('tabs, dialogs, labels and links', () => {
   for (const [tag] of html.matchAll(/<button\b[^>]*>/g)) assert.match(tag, /type="button"|type="submit"/, tag);
   for (const [tag] of html.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)) assert.match(tag, /rel="noopener noreferrer"/);
   assert.match(html, /<canvas id="radar-chart"[^>]*role="img"/);
+  for (const set of ['ja', 'en']) assert.match(html, new RegExp(`class="set-button" data-set="${set}" aria-pressed="(true|false)"`));
+  assert.equal((html.match(/name="maker-method"/g) || []).length, 3);
 });
 
 test('scripts avoid innerHTML, style writes, dialogs from window and network access', () => {
@@ -56,6 +58,6 @@ test('the core, data and progress do not use the DOM', () => {
 
 test('script order: dictionary, core and store before the UI', () => {
   const order = [...html.matchAll(/<script src="js\/([^"]+)"/g)].map(m => m[1]);
-  assert.deepEqual(order, ['i18n.js', 'hidden-core.js', 'hidden-data.js', 'progress.js', 'main.js', 'challenges.js', 'results.js']);
+  assert.deepEqual(order, ['i18n.js', 'hidden-core.js', 'hidden-data.js', 'progress.js', 'main.js', 'challenges.js', 'results.js', 'maker.js']);
   assert.deepEqual(jsFiles.map(([f]) => f).sort(), [...order].sort(), 'every script is loaded');
 });

@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function render() {
     const summary = current();
+    $('results-set').textContent = I18n.t('results.set', { set: I18n.t(`set.${Store.set}`) });
     drawRadar(canvas.getContext('2d'), canvas.width, summary);
     const list = Progress.KINDS.map(kind => I18n.t('results.chartItem', { name: kindName(kind), percent: summary.perKind[kind].percent }));
     canvas.setAttribute('aria-label', I18n.t('results.chart', { list: list.join(I18n.t('results.chartSep')) }));
