@@ -87,7 +87,7 @@ const I18n = (() => {
     'results.chartItem': '{name} {percent}%',
     'results.chartSep': '、',
     'results.share': '📱 結果をXでシェア',
-    'results.shareText': 'Hidden Message Challengeで総合ランク{rank}（{percent}%）を獲得しました。 #分置式暗号 #HiddenMessageChallenge',
+    'results.shareText': 'Hidden Message Challengeの{set}で総合ランク{rank}（{percent}%）を獲得しました。 #分置式暗号 #HiddenMessageChallenge',
     'results.download': '📥 結果を画像で保存',
     'results.imageTitle': '分置式暗号文解読チャレンジの成果',
     'results.reset': '🔄 最初からやり直す',
@@ -156,7 +156,7 @@ const I18n = (() => {
     'set.ja': '日本語の問題',
     'set.en': '英語の問題',
     'results.set': '問題セット: {set}',
-    'common.placeholderEn': '隠れた英文を入力（大文字小文字と空白は問わない）',
+    'common.placeholderEn': '英字で入力',
     'rule.after1Letter': '{marks}の直後の英字を読め（空白と記号は数えない）。',
     'rule.afterNLetter': '{marks}のあと、{n}番目の英字を読め（空白と記号は数えない）。',
     'rule.wordFirst': '各単語の最初の文字を読め。',
@@ -188,7 +188,6 @@ const I18n = (() => {
     'maker.regenerate': '作り直す',
     'maker.output': '暗号文',
     'maker.outputStencil': '文字の表と型紙（■が穴）',
-    'maker.gridLabel': '作った文字の表（穴の位置に色）',
     'maker.copy': '📋 コピー',
     'maker.copied': 'コピーしました。',
     'maker.copyFailed': 'コピーできなかったので、文字を選択しました。',
@@ -200,7 +199,7 @@ const I18n = (() => {
     'maker.removal.tooMany': '混ぜた文字が全体の{percent}%あり、同じ文字が目立ちます。量を減らすか、混ぜる文字の種類を増やしましょう。',
     'maker.stencil.tooLong': '5×5の表に隠せるのは{max}文字までです。',
     'maker.stencil.roundTrip': '型紙を重ねると、元の文が読めることを確かめました。',
-    'maker.stencil.manyHoles': '穴が{count}個あり、表の半分を超えます。穴が多いと、型紙がなくても文の並びが見えやすくなります。',
+    'maker.stencil.manyHoles': '穴が{count}個あり、表の半分を超えます。穴が多いと、型紙がなくても文の並びに気づかれやすくなります。',
     'maker.acrostic.count': '行が{lines}行、隠す文字が{letters}文字で、数が合いません。',
     'maker.acrostic.short': '2文字以下の短い行が{count}行あります。短い行は目立ちます。',
     'maker.acrostic.done': 'すべての行の頭が、隠したい文と一致しました。',
@@ -234,8 +233,8 @@ const I18n = (() => {
     'explain.es2': '90度回すと「CODE」（暗号）。',
     'hint.es3': '型紙を上下逆さにしてみましょう。',
     'explain.es3': '180度回すと「SECRET」（秘密）。',
-    'hint.es4': '回してから並べ替えると、「音を立てない」という意味の語になります。',
-    'explain.es4': '180度回すと「TINSEL」が見え、並べ替えて「SILENT」（静かな）。',
+    'hint.es4': '回してから並べ替えると、「人目につかない」という意味の語になります。',
+    'explain.es4': '180度回すと「DNIHDE」が見え、並べ替えて「HIDDEN」（隠された）。',
     'hint.es5': '12文字の、昔から暗号の例文に使われてきた軍の命令です。',
     'explain.es5': '90度回すと「ATTACK AT DAWN」（夜明けに攻撃せよ）。暗号の例文としてよく使われます。',
     'hint.ea4': 'エドガー・アラン・ポーが、いとこのアルバムに書いた詩です。行頭に人の名前が隠れています。',
@@ -247,7 +246,7 @@ const I18n = (() => {
     'hint.ep1': '第一次世界大戦中の電文です。見かけは新聞向けの記事です。',
     'explain.ep1':
       '「PERSHING SAILS FROM NY JUNE I」（パーシング将軍、6月1日にニューヨークを出航）。最後のIは数字の1です。デイヴィッド・カーン『The' +
-      ' Codebreakers』はドイツ側の電文として紹介しつつ、送り手は分からないとも書いています。カーンによれば、実際の出航は5月28日でした。',
+      ' Codebreakers』はドイツ側が送った電文として紹介していますが、送り手の名は挙げていません。送り手の見方は本によって分かれます（問題4の解説も参照）。カーンによれば、実際の出航は5月28日でした。',
     'source.ep1': '出典: デイヴィッド・カーン『The Codebreakers』（1967年）が引用する第一次世界大戦の電文',
     'hint.ep4': '問題1と同じ内容を、別の電文に隠しています。今度は各単語の2文字目です。',
     'explain.ep4':
@@ -256,7 +255,9 @@ const I18n = (() => {
     'source.ep4': '出典: H・C・ホイ『40 O.B. or How the War Was Won』（1932年）。デイヴィッド・カーン『The Codebreakers』（1967年）も引用',
     'hint.ep5': '王党派のジョン・トレヴァニオン卿に宛てた手紙とされる文です。句読点やダッシュのあと、3番目の英字を読みます。',
     'explain.ep5': '「PANEL AT EAST END OF CHAPEL SLIDES」（礼拝堂の東の端の羽目板が動く）。1863年の雑誌記事が初出で、実在のジョン・トレヴァニオンは1643年に戦死したとされ、1648年の話とは年が合わないため、史実とは考えにくい話です。',
-    'source.ep5': '出典: S・ベアリング＝グールド『Curiosities of Olden Times』（1896年改訂版。初出は1863年の雑誌「Once a Week」）'
+    'source.ep5': '出典: S・ベアリング＝グールド『Curiosities of Olden Times』（1896年改訂版。初出は1863年の雑誌「Once a Week」）',
+    'maker.stencil.standsOut': '穴の文字「{chars}」と同じ種類の文字が、ほかのマスにありません。型紙がなくても目立ちます（ひらがな・カタカナ・英字をそろえ、数字や記号、小さい文字は避けましょう）。',
+    'maker.acrostic.skipped': '「{chars}」は行の頭にならないので、飛ばして数えています。'
   };
 
   const en = {
@@ -346,7 +347,7 @@ const I18n = (() => {
     'results.chartItem': '{name} {percent}%',
     'results.chartSep': ', ',
     'results.share': '📱 Share on X',
-    'results.shareText': 'I reached rank {rank} ({percent}%) in Hidden Message Challenge. #ConcealmentCipher #HiddenMessageChallenge',
+    'results.shareText': 'I reached rank {rank} ({percent}%) on the {set} in Hidden Message Challenge. #ConcealmentCipher #HiddenMessageChallenge',
     'results.download': '📥 Save as an image',
     'results.imageTitle': 'Concealment Cipher Challenge results',
     'results.reset': '🔄 Start over',
@@ -430,7 +431,7 @@ const I18n = (() => {
     'set.ja': 'Japanese puzzles',
     'set.en': 'English puzzles',
     'results.set': 'Puzzle set: {set}',
-    'common.placeholderEn': 'Type the hidden message (case and spaces do not matter)',
+    'common.placeholderEn': 'Type in letters',
     'rule.after1Letter': 'Read the first letter after each {marks} (spaces and symbols are not counted).',
     'rule.afterNLetter': 'Read letter {n} after each {marks}, counting letters only.',
     'rule.wordFirst': 'Read the first letter of each word.',
@@ -466,7 +467,6 @@ const I18n = (() => {
     'maker.regenerate': 'Make again',
     'maker.output': 'Ciphertext',
     'maker.outputStencil': 'Grid and stencil (■ = hole)',
-    'maker.gridLabel': 'Generated grid (holes highlighted)',
     'maker.copy': '📋 Copy',
     'maker.copied': 'Copied.',
     'maker.copyFailed': 'Could not copy, so the text is selected instead.',
@@ -478,8 +478,9 @@ const I18n = (() => {
     'maker.removal.tooMany': 'Filler makes up {percent}% of the text, so the same characters stand out. Use less, or more kinds of filler.',
     'maker.stencil.tooLong': 'A 5 by 5 grid can hide at most {max} letters.',
     'maker.stencil.roundTrip': 'Laying the stencil gives back the message (checked).',
-    'maker.stencil.manyHoles': 'The stencil has {count} holes, more than half the grid. With many holes, the message shows even without the stencil.',
-    'maker.acrostic.count': 'There are {lines} lines for {letters} letters.',
+    'maker.stencil.manyHoles':
+      'The stencil has {count} holes, more than half the grid. With this many holes, the message is easier to spot even without the stencil.',
+    'maker.acrostic.count': 'Lines: {lines}; letters to hide: {letters}. The numbers do not match.',
     'maker.acrostic.short': 'Lines of two characters or fewer: {count}. Short lines stand out.',
     'maker.acrostic.done': 'Every line head matches the message.',
     'finding.error': 'Error',
@@ -512,8 +513,8 @@ const I18n = (() => {
     'explain.es2': 'Turned 90°, the holes show "CODE".',
     'hint.es3': 'Turn the stencil upside down.',
     'explain.es3': 'Turned 180°, the holes show "SECRET".',
-    'hint.es4': 'Turn it, then rearrange the letters into a word meaning "making no sound".',
-    'explain.es4': 'Turned 180°, the holes show "TINSEL"; rearranged, "SILENT".',
+    'hint.es4': 'Turn it, then rearrange the letters into a word meaning "kept out of sight".',
+    'explain.es4': 'Turned 180°, the holes show "DNIHDE"; rearranged, "HIDDEN".',
     'hint.es5': 'Twelve letters: a military order long used as an example in cryptography.',
     'explain.es5': 'Turned 90°, the holes show "ATTACK AT DAWN", a classic example message.',
     'hint.ea4': 'A poem Edgar Allan Poe wrote in his cousin\'s album. A name is hidden in the line heads.',
@@ -525,7 +526,8 @@ const I18n = (() => {
     'hint.ep1': 'A World War I cable made to look like a press report.',
     'explain.ep1':
       '"PERSHING SAILS FROM NY JUNE I": General Pershing sails from New York on June 1 (the final I stands for 1). David Kahn\'s The Codebreakers' +
-      ' presents it as a German message but also says the sender is unknown. According to Kahn, Pershing actually sailed on May 28.',
+      ' presents it as sent by the Germans but does not name the sender, and accounts of the sender differ (see puzzle 4). According to Kahn,' +
+      ' Pershing actually sailed on May 28.',
     'source.ep1': 'Source: a World War I message quoted in David Kahn, The Codebreakers (1967)',
     'hint.ep4': 'The same message as puzzle 1, hidden in another cable. This time, the second letter of each word.',
     'explain.ep4':
@@ -537,7 +539,11 @@ const I18n = (() => {
     'explain.ep5':
       '"PANEL AT EAST END OF CHAPEL SLIDES". The story first appeared in an 1863 magazine article, and the real John Trevanion is recorded as' +
       ' killed in 1643, which does not fit a story set in 1648, so it is unlikely to be history.',
-    'source.ep5': 'Source: S. Baring-Gould, Curiosities of Olden Times (rev. ed. 1896; first printed in Once a Week, 1863)'
+    'source.ep5': 'Source: S. Baring-Gould, Curiosities of Olden Times (rev. ed. 1896; first printed in Once a Week, 1863)',
+    'maker.stencil.standsOut':
+      'No other cell has the same kind of character as "{chars}", so it stands out even without the stencil. Keep to one script and avoid digits,' +
+      ' symbols and small kana.',
+    'maker.acrostic.skipped': '"{chars}" cannot start a line, so it is skipped.'
   };
 
   let language = 'ja';

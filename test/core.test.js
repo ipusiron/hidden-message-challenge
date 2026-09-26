@@ -123,22 +123,31 @@ test('maker: removal findings', () => {
 
 test('maker: stencils always read back and use matching fillers', () => {
   for (let seed = 1; seed <= 200; seed++) {
-    for (const msg of ['SPY', 'あいしてる', 'attack at dawn', 'ABCDEFGHIJKLMNOPQRSTUVWXY']) {
+    for (const msg of ['SPY', 'あいしてる', 'attack at dawn', 'Meet me at noon', 'スパイ', 'ABCDEFGHIJKLMNOPQRSTUVWXY']) {
       const made = C.makeStencil(msg, { rand: C.rng(seed) });
-      assert.equal(C.visible(made.grid, made.mask).plain, C.messageLetters(msg).join(''), `${msg} ${seed}`);
-      assert.equal(made.mask.flat().filter(Boolean).length, C.messageLetters(msg).length);
+      const letters = C.messageLetters(msg).join('');
+      assert.ok(C.normalize(C.visible(made.grid, made.mask).plain) === C.normalize(letters), `${msg} ${seed}`);
+      assert.equal(made.mask.flat().filter(Boolean).length, [...letters].length);
+      assert.deepEqual(C.stencilReport(msg, made).filter(f => f.key.endsWith('standsOut')), [], `${msg} ${seed}: nothing stands out`);
     }
   }
   assert.equal(C.makeStencil('A'.repeat(26), { rand: C.rng(1) }), null);
   assert.equal(C.makeStencil('', { rand: C.rng(1) }), null);
-  const kana = C.fillerAlphabet('あいう');
-  assert.ok(kana.length > 60 && kana.every(ch => ch >= 'ぁ' && ch <= 'ん'));
-  assert.ok(!kana.some(ch => C.fullSize(ch) !== ch), 'no small kana');
-  assert.deepEqual([C.fillerAlphabet('abc')[0], C.fillerAlphabet('ABC')[0], C.fillerAlphabet('Abc')[0]], ['a', 'A', 'A']);
+  const hira = C.fillerAlphabet('あいう');
+  assert.ok(hira.length > 60 && hira.every(ch => ch >= 'ぁ' && ch <= 'ん'));
+  assert.ok(!hira.some(ch => C.fullSize(ch) !== ch), 'no small kana');
+  assert.ok(C.fillerAlphabet('スパイ').every(ch => ch >= 'ァ' && ch <= 'ン'), 'katakana messages get katakana');
+  assert.deepEqual([C.fillerAlphabet('abc')[0], C.fillerAlphabet('Abc')[0]], ['A', 'A'], 'Latin letters are uppercase');
+  assert.ok(C.makeStencil('Meet me', { rand: C.rng(1) }).grid.flat().every(ch => /[A-Z]/.test(ch)), 'the message is uppercased too');
   const keys = f => f.map(x => x.key.split('.').pop());
   assert.deepEqual(keys(C.stencilReport('A'.repeat(26))), ['tooLong']);
   assert.deepEqual(keys(C.stencilReport('A'.repeat(13), C.makeStencil('A'.repeat(13), { rand: C.rng(3) }))), ['roundTrip', 'manyHoles']);
   assert.deepEqual(keys(C.stencilReport('SPY')), []);
+  // characters of a kind the fillers never use give the message away
+  for (const [msg, chars] of [['きって', 'っ'], ['ラーメン', 'ー'], ['meet at 5!', '5 !']]) {
+    const report = C.stencilReport(msg, C.makeStencil(msg, { rand: C.rng(7) }));
+    assert.deepEqual(report.find(f => f.key.endsWith('standsOut')).values, { chars }, msg);
+  }
 });
 
 test('maker: acrostic report while writing', () => {
@@ -150,4 +159,21 @@ test('maker: acrostic report while writing', () => {
   assert.deepEqual(C.acrosticReport('ab', 'Apple\nBanana').findings.map(f => f.key.split('.').pop()), ['done'], 'case-insensitive');
   assert.deepEqual(C.acrosticReport('ab', 'Apple').findings.map(f => f.key.split('.').pop()), ['count']);
   assert.equal(C.acrosticReport('あい', 'アサ\nいぬ').findings.at(-1).key, 'maker.acrostic.done', 'katakana counts as hiragana');
+  assert.equal(C.acrosticReport('きって', 'きのう\nつき\nてがみ').findings.at(-1).key, 'maker.acrostic.done', 'small kana count as full size');
+  const withDigit = C.acrosticReport('meet at 5', ['Many', 'Every', 'Each', 'Time', 'All', 'Ten'].join('\n'));
+  assert.deepEqual(withDigit.findings.map(f => f.key.split('.').pop()), ['skipped', 'done'], 'digits are left out, so the acrostic can be finished');
+  assert.deepEqual(withDigit.findings[0].values, { chars: '5' });
+  assert.equal(C.acrosticReport('éa', ['été', 'ami'].join('\n')).findings.at(-1).key, 'maker.acrostic.done', 'NFC');
+});
+
+test('surrogate pairs, case-insensitive removal and unsupported rules', () => {
+  assert.deepEqual(C.acrostic('\u{1D400}bc'), [{ row: 0, col: 0, char: '\u{1D400}' }], 'a letter outside the BMP is one character');
+  assert.deepEqual(C.removeChars('BMEBET', ['b']), { plain: 'MEET', removed: [0, 3] }, 'lowercase b removes B');
+  assert.equal(C.removeChars('けあケ', ['ケ']).plain, 'あ', 'katakana removes hiragana too');
+  const unsupported = [{ kind: 'words', index: -2 }, { kind: 'mark', marks: ['.'], offset: -1, lettersOnly: true },
+    { kind: 'mark', marks: ['.'], offset: -2 }];
+  for (const rule of unsupported) {
+    assert.throws(() => C.applyRule('a. b', rule), JSON.stringify(rule));
+    assert.throws(() => C.describeRule(rule, k => k), JSON.stringify(rule));
+  }
 });

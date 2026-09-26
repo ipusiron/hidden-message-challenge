@@ -118,7 +118,7 @@ The picture word is a pun that names the characters to remove, for example "kesh
 
 - During the English Civil War, a letter to the captured Royalist Sir John Trevanion is said to have hidden escape directions in the third letter after each punctuation mark. The story first appeared in an 1863 magazine article, and the real John Trevanion is recorded as killed in 1643, which does not fit a story set in 1648, so it is unlikely to be history (English position puzzle 5)
 - In **World War I**, a cable disguised as a press report hid "PERSHING SAILS FROM NY JUNE I" in the first letters, and another in the second letters, of its words. David Kahn's The Codebreakers (1967) presents them as German messages but also says the sender is unknown, while H. C. Hoy (1932), who worked in British naval intelligence, describes them as used by his own side. According to Kahn, Pershing actually sailed on May 28 (English position puzzles 1 and 4)
-- In poetry, Lewis Carroll hid Alice Pleasance Liddell's name in the line heads of the closing poem of Through the Looking-Glass, and Poe hid Elizabeth's name in a poem written in his cousin's album (English acrostic puzzles 4 and 5)
+- In poetry, Poe hid Elizabeth's name in the line heads of a poem written in his cousin's album, and Lewis Carroll hid Alice Pleasance Liddell's name in the closing poem of Through the Looking-Glass (English acrostic puzzles 4 and 5)
 - Spies and **some wartime messages** also hid information inside ordinary text
 - The **turning grille** uses a card with holes like a stencil, but structurally it is closer to a transposition cipher
 - Today there are also social-steganography uses that hide messages in posts and image captions
@@ -277,7 +277,7 @@ The twenty English puzzles. Answers are letters; case and spaces do not matter.
 | `es1` | Stencil | Lay without turning | `SPY` | `spy` |
 | `es2` | Stencil | Turn 90° | `CODE` | `code` |
 | `es3` | Stencil | Turn 180° | `SECRET` | `secret` |
-| `es4` | Stencil | Turn 180° and rearrange | `TINSEL` | `silent` |
+| `es4` | Stencil | Turn 180° and rearrange | `DNIHDE` | `hidden` |
 | `es5` | Stencil | Turn 90° | `ATTACKATDAWN` | `attackatdawn` |
 
 ### Quoted works

@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const copyStatus = $('maker-copy-status');
   const findingsList = $('maker-findings');
   const generate = $('maker-generate');
+  const status = $('maker-status');
+  const SEVERITY = ['error', 'warning', 'ok', 'info'];
   const BLOCKS = { acrostic: ['maker-acrostic'], removal: ['maker-removal', 'maker-actions'], stencil: ['maker-actions'] };
   let attempt = 0;          // "make again" changes the seed
   let made = null;          // { method, text, findings, grid? } of the last result
@@ -24,6 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const method = () => document.querySelector('input[name="maker-method"]:checked').value;
   const nullChars = () => [...nulls.value].filter(ch => !/\s/.test(ch));
+
+  // Screen readers hear one short summary, and only when it changes (the lists themselves are not live regions)
+  function announce(finding) {
+    const text = finding ? I18n.t(finding.key, finding.values || {}) : '';
+    if (status.textContent !== text) status.textContent = text;
+  }
+  const mostSevere = findings => findings.slice().sort((a, b) => SEVERITY.indexOf(a.level) - SEVERITY.indexOf(b.level))[0];
 
   function renderFindings(findings) {
     findingsList.replaceChildren(...findings.map(f => {
@@ -39,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (HiddenCore.messageLetters(message.value).length === 0) {
       lineCheck.replaceChildren();
       renderFindings([{ level: 'info', key: 'maker.empty' }]);
+      announce({ key: 'maker.empty' });
       return;
     }
     const report = HiddenCore.acrosticReport(message.value, lines.value);
@@ -49,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const findings = [...report.findings];
     if (report.next) findings.unshift({ level: 'info', key: 'maker.next', values: { char: report.next } });
     renderFindings(findings);
+    announce(findings.find(f => f.key === 'maker.acrostic.done') || findings.find(f => f.key === 'maker.next') || mostSevere(findings));
   }
 
   function renderGrid(result) {
@@ -87,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const m = method();
     new Set(Object.values(BLOCKS).flat()).forEach(id => { $(id).hidden = !BLOCKS[m].includes(id); });
     $('maker-output-label').textContent = I18n.t(m === 'stencil' ? 'maker.outputStencil' : 'maker.output');
-    generate.textContent = I18n.t(made && made.method === m ? 'maker.regenerate' : 'maker.generate');
+    generate.textContent = I18n.t(made && made.method === m && made.text ? 'maker.regenerate' : 'maker.generate');
     if (m === 'acrostic') {
       $('maker-result').hidden = true;
       renderGrid(null);
@@ -100,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     output.rows = Math.max(3, output.value.split('\n').length);        // the stencil text is 11 lines
     renderGrid(current && m === 'stencil' ? current.grid : null);
     renderFindings(current ? current.findings : []);
+    announce(current ? mostSevere(current.findings) : null);
   }
 
   generate.addEventListener('click', () => {
@@ -132,6 +144,9 @@ document.addEventListener('DOMContentLoaded', () => {
       copyStatus.textContent = I18n.t('maker.copyFailed');
     }
   });
-  document.addEventListener('languagechange', render);
+  document.addEventListener('languagechange', () => {
+    copyStatus.textContent = '';
+    render();
+  });
   render();
 });

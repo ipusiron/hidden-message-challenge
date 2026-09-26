@@ -72,7 +72,8 @@ test('keys built by the core and the maker exist', () => {
     ...C.removalReport('Bees', ['b'], ''), ...C.removalReport('abc', ['x'], 'xabc'), ...C.removalReport('abc', ['x'], 'xaxbxcxx'),
     ...C.stencilReport('A'.repeat(26)), ...C.stencilReport('A'.repeat(13), C.makeStencil('A'.repeat(13), { rand: C.rng(3) })),
     ...C.acrosticReport('ab', 'Apple').findings, ...C.acrosticReport('ab', ['Apple', 'Banana'].join('\n')).findings,
-    ...C.acrosticReport('a', ['x', 'y'].join('\n')).findings
+    ...C.acrosticReport('a', ['x', 'y'].join('\n')).findings, ...C.acrosticReport('a5', 'apple').findings,
+    ...C.stencilReport('きって', C.makeStencil('きって', { rand: C.rng(7) }))
   ];
   for (const f of findings) check(f.key, f.values);
   for (const level of ['error', 'warning', 'info', 'ok']) check(`finding.${level}`);

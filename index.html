@@ -138,17 +138,17 @@
       </fieldset>
       <div class="maker-field">
         <label for="maker-message" data-i18n="maker.message">隠したい文</label>
-        <input type="text" id="maker-message" class="answer-input" autocomplete="off" spellcheck="false">
-        <small data-i18n="maker.messageHint">ひらがなか英字。空白は無視します。</small>
+        <input type="text" id="maker-message" class="answer-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="maker-message-hint">
+        <small id="maker-message-hint" data-i18n="maker.messageHint">ひらがなか英字。空白は無視します。</small>
       </div>
       <div class="maker-field" id="maker-acrostic">
         <label for="maker-lines" data-i18n="maker.lines">カバーの文</label>
-        <textarea id="maker-lines" rows="6" spellcheck="false"></textarea>
-        <ol class="maker-line-check" id="maker-line-check" aria-live="polite"></ol>
+        <textarea id="maker-lines" rows="6" autocomplete="off" spellcheck="false"></textarea>
+        <ol class="maker-line-check" id="maker-line-check"></ol>
       </div>
       <div class="maker-field" id="maker-removal" hidden>
         <label for="maker-nulls" data-i18n="maker.nulls">混ぜる文字</label>
-        <input type="text" id="maker-nulls" class="answer-input" maxlength="4" autocomplete="off" spellcheck="false">
+        <input type="text" id="maker-nulls" class="answer-input" maxlength="4" autocomplete="off" autocapitalize="off" spellcheck="false">
         <label for="maker-rate" data-i18n="maker.rate">混ぜる量</label>
         <select id="maker-rate">
           <option value="0.25" data-i18n="maker.rate.low">少なめ</option>
@@ -159,16 +159,18 @@
       <div class="button-group" id="maker-actions" hidden>
         <button type="button" id="maker-generate" class="action-button" data-i18n="maker.generate">作る</button>
       </div>
-      <table class="stencil-grid maker-grid" id="maker-grid" data-i18n-aria-label="maker.gridLabel" hidden></table>
+      <!-- the same grid is in the text box below (with the stencil as ■), which screen readers use -->
+      <table class="stencil-grid maker-grid" id="maker-grid" aria-hidden="true" hidden></table>
       <div class="maker-field" id="maker-result" hidden>
         <label for="maker-output" id="maker-output-label">暗号文</label>
-        <textarea id="maker-output" rows="4" readonly spellcheck="false"></textarea>
+        <textarea id="maker-output" rows="4" readonly autocomplete="off" spellcheck="false"></textarea>
         <div class="button-group">
           <button type="button" id="maker-copy" class="action-button" data-i18n="maker.copy">コピー</button>
         </div>
         <p class="notice" id="maker-copy-status" role="status"></p>
       </div>
-      <ul class="findings" id="maker-findings" aria-live="polite"></ul>
+      <ul class="findings" id="maker-findings"></ul>
+      <p class="visually-hidden" id="maker-status" role="status"></p>
     </section>
   </main>
 

@@ -110,14 +110,14 @@ const HiddenData = (() => {
 
   // Stencils: letters placed row by row; the mask is stored turned back, so `solution.rotation` reveals the message
   const EN_STENCIL = [
-    { id: 'es1', grid: ['UNTJW', 'YBFTS', 'YJJTP', 'GRWRY', 'ASQEB'], mask: ['00000', '00001', '00001', '00001', '00000'],
+    { id: 'es1', grid: ['UNTJW', 'YBFTS', 'YJJTP', 'GRXQY', 'ASQEB'], mask: ['00000', '00001', '00001', '00001', '00000'],
       solution: { rotation: 0 }, answers: ['spy'] },
     { id: 'es2', grid: ['CUCOY', 'HRLDU', 'RIBUE', 'RRQYK', 'ACTRP'], mask: ['00100', '11000', '00000', '00000', '10000'],
       solution: { rotation: 1 }, answers: ['code'] },
     { id: 'es3', grid: ['USUQB', 'VSECR', 'HHWXW', 'TQETE', 'IWRUX'], mask: ['00000', '01100', '00000', '11100', '00010'],
       solution: { rotation: 2 }, answers: ['secret'] },
-    { id: 'es4', grid: ['QTLDI', 'ZNSFE', 'GWJEL', 'YJBRY', 'EWDBD'], mask: ['00000', '00000', '11000', '00110', '10010'],
-      solution: { rotation: 2, anagram: true }, answers: ['silent'] },
+    { id: 'es4', grid: ['SFTAD', 'ZLNBJ', 'YRIHH', 'ADABS', 'MCTHE'], mask: ['10000', '00010', '10100', '00100', '10000'],
+      solution: { rotation: 2, anagram: true }, answers: ['hidden'] },
     { id: 'es5', grid: ['EAYTL', 'TKHIT', 'XTAZK', 'CKATD', 'ACWNV'], mask: ['01010', '00011', '00111', '10110', '00011'],
       solution: { rotation: 1 }, answers: ['attackatdawn'] }
   ].map(s => ({ ...s, grid: s.grid.map(row => [...row]), mask: s.mask.map(row => [...row].map(Number)) }));

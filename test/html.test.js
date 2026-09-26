@@ -38,6 +38,11 @@ test('tabs, dialogs, labels and links', () => {
   assert.match(html, /<canvas id="radar-chart"[^>]*role="img"/);
   for (const set of ['ja', 'en']) assert.match(html, new RegExp(`class="set-button" data-set="${set}" aria-pressed="(true|false)"`));
   assert.equal((html.match(/name="maker-method"/g) || []).length, 3);
+  const maker = html.slice(html.indexOf('<section id="maker"'), html.indexOf('</section>', html.indexOf('<section id="maker"')));
+  for (const [tag] of maker.matchAll(/<(input type="text"|textarea)\b[^>]*>/g)) assert.match(tag, /autocomplete="off"/, tag);
+  assert.doesNotMatch(maker, /aria-live/, 'only the short status is announced');
+  assert.match(maker, /id="maker-status" role="status"/);
+  assert.match(maker, /id="maker-grid" aria-hidden="true"/);
 });
 
 test('scripts avoid innerHTML, style writes, dialogs from window and network access', () => {

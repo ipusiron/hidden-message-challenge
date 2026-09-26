@@ -61,7 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     $('results-total').textContent = I18n.t('results.total', summary);
     $('results-rank').textContent = I18n.t('results.rank', { rank: summary.rank, title: I18n.t(`rank.${summary.rank}`) });
-    const params = new URLSearchParams({ text: I18n.t('results.shareText', summary), url: PAGE_URL });
+    const setName = I18n.t(`set.${Store.set}`);
+    const params = new URLSearchParams({ text: I18n.t('results.shareText', { ...summary, set: setName }), url: PAGE_URL });
     $('share-x').href = `https://twitter.com/intent/tweet?${params}`;
   }
 
@@ -80,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillText('Hidden Message Challenge', 600, 80);
     ctx.fillStyle = COLORS.text;
     ctx.font = '26px sans-serif';
-    ctx.fillText(I18n.t('results.imageTitle'), 600, 128);
+    ctx.fillText(`${I18n.t('results.imageTitle')} (${I18n.t(`set.${Store.set}`)})`, 600, 128);
     const chart = document.createElement('canvas');
     chart.width = chart.height = 440;
     drawRadar(chart.getContext('2d'), 440, summary);
@@ -110,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   resetModal.addEventListener('close', () => $('reset-all').focus());
   document.addEventListener('progresschange', render);
+  document.addEventListener('setchange', () => { notice.textContent = ''; });     // the notice was about the other set
   document.addEventListener('languagechange', () => {
     notice.textContent = '';
     render();

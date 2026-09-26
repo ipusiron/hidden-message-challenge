@@ -38,18 +38,20 @@ const HiddenCore = (() => {
   // Leading quotes and other symbols are skipped ("Love not" counts as L).
   function acrostic(text) {
     return text.split('\n').map((line, row) => {
-      const col = line.search(/\p{L}/u);
-      return { row, col, char: col >= 0 ? line[col] : '' };
+      const m = line.match(/\p{L}/u);                   // a whole code point, also outside the BMP
+      return { row, col: m ? m.index : -1, char: m ? m[0] : '' };
     }).filter(p => p.char !== '');
   }
 
   // ---------- Character removal ----------
+  // Matching ignores case, width and katakana/hiragana (b removes B; typing the letter as shown is not required).
   function removeChars(cipher, chars) {
-    const set = new Set(chars.filter(Boolean));
+    const set = new Set(chars.map(normalize).filter(Boolean));
     const letters = [...cipher];
+    const hit = ch => set.has(normalize(ch));
     return {
-      plain: letters.filter(ch => !set.has(ch)).join(''),
-      removed: letters.map((ch, i) => (set.has(ch) ? i : -1)).filter(i => i >= 0)
+      plain: letters.filter(ch => !hit(ch)).join(''),
+      removed: letters.map((ch, i) => (hit(ch) ? i : -1)).filter(i => i >= 0)
     };
   }
 
@@ -69,7 +71,15 @@ const HiddenCore = (() => {
   //   with lettersOnly, only letters are counted (the English "third letter after each punctuation mark").
   // segments: split by `separator`, read the first and/or last character of each part.
   // words: the letter at `index` of each word (-1 = last); words are separated by spaces and only letters count.
+  // Combinations that have no wording in describeRule are rejected instead of being read one way and described another
+  function checkRule(rule) {
+    if (rule.kind === 'mark' && rule.lettersOnly && rule.offset < 1) throw new Error('lettersOnly needs a positive offset');
+    if (rule.kind === 'mark' && rule.offset < -1) throw new Error('only -1 is supported before a mark');
+    if (rule.kind === 'words' && rule.index < -1) throw new Error('only -1 is supported from the end of a word');
+  }
+
   function applyRule(text, rule) {
+    checkRule(rule);
     const letters = [...text];
     const picks = [];
     if (rule.kind === 'mark') {
@@ -111,6 +121,7 @@ const HiddenCore = (() => {
 
   // Wording of a rule, built from the same object the reader uses; t(key, values) supplies the messages
   function describeRule(rule, t) {
+    checkRule(rule);
     if (rule.kind === 'mark') {
       const marks = rule.marks.map(mark => t('rule.mark', { mark })).join(t('rule.or'));
       if (rule.offset === -1) return t('rule.before1', { marks });
@@ -172,25 +183,42 @@ const HiddenCore = (() => {
     return h >>> 0;
   }
 
-  const messageLetters = message => [...String(message || '')].filter(ch => !/\s/.test(ch));
-  const isKana = ch => ch.charCodeAt(0) >= 0x3041 && ch.charCodeAt(0) <= 0x30ff;
+  // NFC first, so that a letter typed as base + combining mark counts as one character
+  const messageLetters = message => [...String(message || '').normalize('NFC')].filter(ch => !/\s/.test(ch));
+  const code = ch => ch.charCodeAt(0);
+  const isHiragana = ch => code(ch) >= 0x3041 && code(ch) <= 0x3096;
+  const isKatakana = ch => code(ch) >= 0x30a1 && code(ch) <= 0x30fa;       // without the long vowel mark and the middle dot
   const sameChar = (a, b) => normalize(a) === normalize(b);
+  // Line heads: small kana count as full size, as in the puzzles' readings
+  const sameHead = (a, b) => [...normalize(a)].map(fullSize).join('') === [...normalize(b)].map(fullSize).join('');
 
-  // Filler characters: full-size hiragana (without wi and we) for kana messages, otherwise A-Z in the message's case
+  // Kind of a character. A hole whose kind never appears among the fillers gives the message away.
+  function charClass(ch) {
+    if (/[A-Z]/.test(ch)) return 'upper';
+    if (/[a-z]/.test(ch)) return 'lower';
+    if (isHiragana(ch) || isKatakana(ch)) {
+      const kata = isKatakana(ch);
+      const hira = kata ? String.fromCharCode(code(ch) - 0x60) : ch;       // katakana sit 0x60 above hiragana
+      return (kata ? 'katakana' : 'hiragana') + (fullSize(hira) !== hira ? '-small' : '');
+    }
+    return /\p{N}/u.test(ch) ? 'digit' : 'other';
+  }
+
+  // Full-size kana from `from` to `to` without wi and we (rare in modern text)
+  const kanaRange = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => String.fromCharCode(from + i))
+    .filter(ch => !/-small$/.test(charClass(ch)) && ![0x3090, 0x3091, 0x30f0, 0x30f1].includes(code(ch)));
+
+  // Filler characters in the message's own script: hiragana, katakana (when katakana is the majority) or A-Z
   function fillerAlphabet(message) {
     const letters = messageLetters(message);
-    if (letters.some(isKana)) {
-      return Array.from({ length: 0x3093 - 0x3042 + 1 }, (_, i) => String.fromCharCode(0x3042 + i))
-        .filter(ch => !SMALL_KANA[ch] && ch.charCodeAt(0) !== 0x3090 && ch.charCodeAt(0) !== 0x3091);
-    }
-    const az = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
-    const lower = letters.some(ch => /[a-z]/.test(ch)) && !letters.some(ch => /[A-Z]/.test(ch));
-    return lower ? az.map(ch => ch.toLowerCase()) : az;
+    const hira = letters.filter(isHiragana).length, kata = letters.filter(isKatakana).length;
+    if (hira || kata) return kata > hira ? kanaRange(0x30a2, 0x30f3) : kanaRange(0x3042, 0x3093);
+    return Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
   }
 
   // Inserts filler characters before each letter with probability `rate` (at least one filler overall)
   function makeRemoval(message, nulls, { rate, rand }) {
-    const letters = messageLetters(message), fill = nulls.filter(Boolean);
+    const letters = messageLetters(message), fill = nulls.map(n => n.normalize('NFC')).filter(Boolean);
     if (!letters.length || !fill.length) return '';
     const pick = () => fill[Math.floor(rand() * fill.length)];
     let out = '', used = 0;
@@ -203,21 +231,22 @@ const HiddenCore = (() => {
   }
 
   function removalReport(message, nulls, cipher) {
-    const letters = messageLetters(message), fill = nulls.filter(Boolean), findings = [];
+    const letters = messageLetters(message), fill = nulls.map(n => n.normalize('NFC')).filter(Boolean), findings = [];
     const clash = [...new Set(fill.filter(n => letters.some(ch => sameChar(ch, n))))];
     if (clash.length) findings.push({ level: 'error', key: 'maker.removal.clash', values: { chars: clash.join(' ') } });
     if (!cipher) return findings;
     if (!clash.length && removeChars(cipher, fill).plain === letters.join('')) findings.push({ level: 'ok', key: 'maker.removal.roundTrip' });
     const chars = [...cipher];
-    const percent = Math.round((chars.filter(ch => fill.includes(ch)).length / chars.length) * 100);
+    const percent = Math.round((chars.filter(ch => fill.some(n => sameChar(n, ch))).length / chars.length) * 100);
     findings.push(percent > 40 ? { level: 'warning', key: 'maker.removal.tooMany', values: { percent } }
       : { level: 'info', key: 'maker.removal.share', values: { percent } });
     return findings;
   }
 
-  // Puts the message letters at random cells (read row by row) and fills the rest
+  // Puts the message letters at random cells (read row by row) and fills the rest.
+  // Latin letters are made uppercase to match the A-Z filler; otherwise lowercase holes would stand out.
   function makeStencil(message, { size = 5, rand }) {
-    const letters = messageLetters(message);
+    const letters = messageLetters(message).map(ch => (/[a-z]/.test(ch) ? ch.toUpperCase() : ch));
     if (!letters.length || letters.length > size * size) return null;
     const cells = Array.from({ length: size * size }, (_, i) => i);
     for (let i = cells.length - 1; i > 0; i--) {
@@ -239,16 +268,26 @@ const HiddenCore = (() => {
     const letters = messageLetters(message), count = letters.length;
     if (count > size * size) return [{ level: 'error', key: 'maker.stencil.tooLong', values: { max: size * size } }];
     const findings = [];
-    if (made && visible(made.grid, made.mask).plain === letters.join('')) findings.push({ level: 'ok', key: 'maker.stencil.roundTrip' });
+    if (made && sameChar(visible(made.grid, made.mask).plain, letters.join(''))) findings.push({ level: 'ok', key: 'maker.stencil.roundTrip' });
+    if (made) {
+      const cells = made.grid.flatMap((row, y) => row.map((ch, x) => ({ ch, hole: made.mask[y][x] === 1 })));
+      const fillerKinds = new Set(cells.filter(c => !c.hole).map(c => charClass(c.ch)));
+      const revealing = [...new Set(cells.filter(c => c.hole && !fillerKinds.has(charClass(c.ch))).map(c => c.ch))];
+      if (fillerKinds.size && revealing.length) findings.push({ level: 'warning', key: 'maker.stencil.standsOut', values: { chars: revealing.join(' ') } });
+    }
     if (count > (size * size) / 2) findings.push({ level: 'warning', key: 'maker.stencil.manyHoles', values: { count } });
     return findings;
   }
 
-  // Line-by-line check of an acrostic being written: which head is expected and whether it matches
+  // Line-by-line check of an acrostic being written: which head is expected and whether it matches.
+  // Digits and symbols in the message cannot start a line (heads skip them), so they are left out and reported.
   function acrosticReport(message, text) {
-    const letters = messageLetters(message), heads = acrostic(text), rows = text.split('\n');
-    const lines = heads.map((h, i) => ({ row: h.row, char: h.char, expected: letters[i] || '', ok: i < letters.length && sameChar(h.char, letters[i]) }));
+    const all = messageLetters(message), letters = all.filter(isLetter);
+    const source = String(text).normalize('NFC'), heads = acrostic(source), rows = source.split('\n');
+    const lines = heads.map((h, i) => ({ row: h.row, char: h.char, expected: letters[i] || '', ok: i < letters.length && sameHead(h.char, letters[i]) }));
     const findings = [];
+    const skipped = [...new Set(all.filter(ch => !isLetter(ch)))];
+    if (skipped.length) findings.push({ level: 'info', key: 'maker.acrostic.skipped', values: { chars: skipped.join(' ') } });
     if (heads.length !== letters.length) {
       findings.push({ level: 'warning', key: 'maker.acrostic.count', values: { lines: heads.length, letters: letters.length } });
     }

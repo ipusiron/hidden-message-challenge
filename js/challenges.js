@@ -171,6 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function draw() {
       spec.render(puzzle(), view);
       input.placeholder = I18n.t(Store.set === 'en' ? 'common.placeholderEn' : 'common.placeholder');
+      // puzzle content is in the set's language, which can differ from the page language
+      panel.querySelectorAll('.cipher, #removeChar-picture, .stencil-grid').forEach(node => { node.lang = Store.set; });
+      input.lang = Store.set;
       source.hidden = !puzzle().source;
       source.textContent = puzzle().source ? I18n.t(`source.${puzzle().id}`) : '';
       drawStatus();

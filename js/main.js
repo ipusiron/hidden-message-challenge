@@ -5,6 +5,7 @@ const Store = (() => {
   const sizesOf = set => Object.fromEntries(Object.entries(HiddenData.BY_SET[set]).map(([kind, list]) => [kind, list.length]));
   const states = {};
   let set = 'ja';
+  let chosen = false;       // true once the user picked a set; until then the set follows the display language
 
   function read(key) {
     try { return localStorage.getItem(key); } catch (e) { return null; }       // storage may be blocked
@@ -21,7 +22,8 @@ const Store = (() => {
       states[s] = json ? Progress.parse(json, sizesOf(s)) : Progress.empty();
     }
     const saved = read(SET_KEY);
-    set = saved === 'ja' || saved === 'en' ? saved : (language === 'en' ? 'en' : 'ja');
+    chosen = saved === 'ja' || saved === 'en';
+    set = chosen ? saved : (language === 'en' ? 'en' : 'ja');
   }
 
   // fn receives the current state and returns the next one
@@ -39,16 +41,29 @@ const Store = (() => {
     fire('progresschange');
   }
 
-  function chooseSet(value) {
+  function switchTo(value) {
     if (!(value in KEYS) || value === set) return;
     set = value;
-    write(SET_KEY, value);
     fire('setchange');
     fire('progresschange');
   }
 
+  // A pick with the set buttons is saved and sticks
+  function chooseSet(value) {
+    if (!(value in KEYS)) return;
+    chosen = true;
+    write(SET_KEY, value);
+    switchTo(value);
+  }
+
+  // Changing the display language moves the set along only while the user has not picked one,
+  // which is also what a reload does (the language is saved, the set is derived from it)
+  function followLanguage(language) {
+    if (!chosen) switchTo(language === 'en' ? 'en' : 'ja');
+  }
+
   return {
-    init, update, reset, chooseSet,
+    init, update, reset, chooseSet, followLanguage,
     puzzles: kind => HiddenData.BY_SET[set][kind],
     get set() { return set; },
     get sizes() { return sizesOf(set); },
@@ -130,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     I18n.setLanguage(I18n.language === 'ja' ? 'en' : 'ja');
   });
   document.addEventListener('languagechange', () => {
+    Store.followLanguage(I18n.language);
     renderLevels();
     if (helpModal.open) renderHelp();
   });
