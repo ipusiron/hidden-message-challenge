@@ -27,6 +27,7 @@ Classic scripts (no ES modules, so file:// works). Load order in `index.html`:
 
 - Reading logic belongs in `js/hidden-core.js`. UI scripts must not re-implement it; rule texts are generated from the rule objects.
 - Never edit an answer to make a test pass: fix the puzzle text, rule or mask instead. `test/data.test.js` checks every puzzle.
+- Quoted puzzles (h4, h5) carry `source: true` and keep the original text unchanged; the source line (`source.<id>` in both languages) is shown under the text and listed in the README.
 - CSP forbids inline scripts and styles: no inline event handlers, no `style=` attributes, no `.style.` writes, no `innerHTML`, no `alert`/`confirm`/`window.open`.
 - UI text lives in `js/i18n.js` (both languages, same keys). Other scripts, except the puzzle data, contain no Japanese outside comments. Use `\u` escapes in code (the Write tool may turn them into literal characters; check after writing).
 - Colors used for text are the variables in `:root` of `css/style.css`; `test/contrast.test.js` checks them.

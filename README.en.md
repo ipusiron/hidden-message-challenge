@@ -87,7 +87,7 @@ In that sense it is a kind of **steganography**, whose aim is to keep the messag
 
 - Read the first character of each line
   - Also called an **acrostic**, used in many languages. The first characters join into another word
-  - The poem "Akubi" by Tanikawa Shuntaro, which hides "aishitemasu" (I love you) in its line heads, is a famous example
+  - The poem "Akubi" by Tanikawa Shuntaro, which hides "aishitemasu" (I love you) in its line heads, is a famous example (acrostic puzzle 4 in this tool)
 - Read the third character after each punctuation mark
 - Read the first characters of the parts in order, then the last characters
   - Kutsukamuri is a form of oriku in Japanese poetry that places one sound of a phrase at the start and the end of each part
@@ -208,7 +208,6 @@ Errors in the previous version and their fixes:
 - The second hint of the position challenge erased the text (the rule text had changed and no highlighting branch matched it)
 - Reloading reset the progress shown on each challenge tab to zero (only the Results tab read the saved values, so the two disagreed)
 - Puzzle data: removal puzzle 5 lacked one character; position puzzle 3 said "2 after" but the answer needs the third character; stencil puzzle 2 had one hole too many; the hint for stencil puzzle 3 said "read from the top" although it needs turning and rearranging
-- Two acrostic puzzles (4 and 5) used copyrighted texts; they were replaced with original texts
 
 ### Puzzles and known answers
 
@@ -220,7 +219,7 @@ The twenty puzzles in `js/hidden-data.js` read with `js/hidden-core.js`. The tes
 | `h2` | Acrostic | Line heads (kanji by reading) | `さくらははかない` | `さくらははかない` |
 | `h3` | Acrostic | Line heads | `かきつはた` | `かきつはた` / `かきつばた` |
 | `h4` | Acrostic | Line heads | `あいしてます` | `あいしてます` |
-| `h5` | Acrostic | Line heads | `えきまえでまつ` | `えきまえでまつ` |
+| `h5` | Acrostic | Line heads | `えるしつているか` | `えるしつているか` / `えるしっているか` |
 | `r1` | Removal | Remove `け` | `ありがとう` | `ありがとう` |
 | `r2` | Removal | Remove `ご`, `む` | `こんにちはよろしい天気` | `こんにちはよろしい天気` / `こんにちはよろしいてんき` |
 | `r3` | Removal | Remove `ひ` | `あすさんじにこうえんであおう` | `あすさんじにこうえんであおう` |
@@ -236,6 +235,13 @@ The twenty puzzles in `js/hidden-data.js` read with `js/hidden-core.js`. The tes
 | `s3` | Stencil | Turn 270° and rearrange | `さむゆふい` | `さむいふゆ` |
 | `s4` | Stencil | Turn 270° | `きょうあした` | `きょうあした` |
 | `s5` | Stencil | Turn 180° and rearrange | `うけこすつと` | `すとけっこう` |
+
+### Quoted works
+
+Two acrostic puzzles quote the works below. The page shows the source under the puzzle text.
+
+- Acrostic puzzle 4: Tanikawa Shuntaro, "Akubi"
+- Acrostic puzzle 5: Tsugumi Ohba and Takeshi Obata, Death Note (Shueisha)
 
 ### Ranks
 

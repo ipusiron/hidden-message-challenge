@@ -4,10 +4,11 @@ const C = require('../js/hidden-core.js');
 const D = require('../js/hidden-data.js');
 
 // The first answer must follow from the rule. Other answers are only spellings of the same text:
-// the same letters with voicing marks dropped, or a kanji written in kana.
+// the same letters with voicing marks dropped or small kana written full size, or a kanji written in kana.
 const KANJI_READINGS = { '天気': 'てんき' };
 const sameSpelling = (a, b) => {
-  const plain = s => [...C.normalize(Object.entries(KANJI_READINGS).reduce((t, [k, v]) => t.split(k).join(v), s))].map(C.stripDakuten).join('');
+  const plain = s => [...C.normalize(Object.entries(KANJI_READINGS).reduce((t, [k, v]) => t.split(k).join(v), s))]
+    .map(ch => C.fullSize(C.stripDakuten(ch))).join('');
   return plain(a) === plain(b);
 };
 
@@ -69,6 +70,9 @@ test('fixed data errors stay fixed', () => {
   assert.equal(C.applyRule(byId.p3.text, { ...byId.p3.rule, offset: 2 }).plain, 'んかだ');
   assert.equal(byId.s2.mask.flat().filter(Boolean).length, 5);
   assert.ok(byId.p5.answers.includes('とかなくてしす'), 'the literal reading of the rule is accepted');
-  // replaced texts that were quoted from copyrighted works
-  for (const quoted of ['あくびがでるわ', 'キラ']) assert.ok(!JSON.stringify(D.HEADLINE).includes(quoted), quoted);
+});
+
+test('quoted puzzles are marked so that the source is shown', () => {
+  const quoted = Object.values(D.SETS).flat().filter(p => p.source).map(p => p.id);
+  assert.deepEqual(quoted, ['h4', 'h5']);
 });

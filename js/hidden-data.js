@@ -7,10 +7,11 @@ const HiddenData = (() => {
     { id: 'h2', text: '桜の花が咲く季節になりました\n母に会いに行こう\n悲しい気持ちが吹き飛びます\nいつまでも心に残る思い出です',
       heads: ['さくら', 'はは', 'かな', 'い'], answers: ['さくらははかない'] },
     { id: 'h3', text: 'からころも\nきつつなれにし\nつましあれば\nはるばるきぬる\nたびをしぞおもふ', answers: ['かきつはた', 'かきつばた'] },
-    { id: 'h4', text: 'あさのひかりが まぶしくて\nいつものみちを ゆっくりと\nしろいくもを みあげては\nてをふるきみを おもいだす\n' +
-      'またあえるひを ゆめにみて\nすこしわらって あるきだす', answers: ['あいしてます'] },
-    { id: 'h5', text: 'えんがわで ねこがねむる\nきのうのあめが うそのよう\nまどべに ならぶ はちうえ\nえだのさきに つぼみ ひとつ\n' +
-      'でかけるまえに みずをやる\nまだ すこし さむいけれど\nつめたいかぜも もうすぐ はる', answers: ['えきまえでまつ'] }
+    // h4 and h5 are quotations: the source is shown under the text (source.<id> in js/i18n.js)
+    { id: 'h4', text: 'あくびがでるわ\nいやけがさすわ\nしにたいくらい\nてんでたいくつ\nまぬけなあなた\nすべってころべ', source: true,
+      answers: ['あいしてます'] },
+    { id: 'h5', text: 'えものにされる\nるおれはキラのそんざいを\nしってい\nつにころされるだけだ\nてまねきしているあい\nいずれしけいになるか\nると\nかんがえ',
+      source: true, answers: ['えるしつているか', 'えるしっているか'] }
   ];
 
   // Character removal (the picture hint is a pun naming the characters to remove)

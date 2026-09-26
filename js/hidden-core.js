@@ -25,9 +25,11 @@ const HiddenCore = (() => {
     return ch.normalize('NFD').replace(/[\u3099\u309a]/g, '').normalize('NFC');
   }
 
+  const fullSize = ch => SMALL_KANA[ch] || ch;
+
   // Same letters in any order; small kana count as their full-size forms
   function sameLetters(a, b) {
-    const key = s => [...normalize(s)].map(ch => SMALL_KANA[ch] || ch).sort().join('');
+    const key = s => [...normalize(s)].map(fullSize).sort().join('');
     return key(a) === key(b);
   }
 
@@ -103,7 +105,7 @@ const HiddenCore = (() => {
   const RANKS = [[95, 'S'], [80, 'A'], [60, 'B'], [40, 'C'], [0, 'D']];
   const rank = percent => RANKS.find(([min]) => percent >= min)[1];
 
-  return { normalize, isBlank, isCorrect, stripDakuten, sameLetters, acrostic, removeChars, applyRule, rotate, visible, rank };
+  return { normalize, isBlank, isCorrect, stripDakuten, fullSize, sameLetters, acrostic, removeChars, applyRule, rotate, visible, rank };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = HiddenCore;
