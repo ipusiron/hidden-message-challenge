@@ -1,259 +1,174 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hidden Message Challenge - 分置式暗号文解読チャレンジ</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAABGFBMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8LaHQzAAAAKXRSTlMAAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnAAAAAWJLR0QB/wIt3gAAAEFJREFUGNPtz7sOgCAMBNEaES4ESf//b2Qe3KkxjDdtF3RT5ik+YREnO2MQJyxKqF+5CFTuOe5KtA7g20whbwPuAH12X/dwJZ7kAAAAASUVORK5CYII=">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Hidden Message Challenge - 分置式暗号文解読チャレンジ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%8D%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <div class="header-text">
-                    <h1>🔍 Hidden Message Challenge</h1>
-                    <p class="subtitle">分置式暗号文に隠されたメッセージを見つけ出そう！</p>
-                </div>
-                <button id="help-button" class="help-button" title="ヘルプを表示">
-                    <span>?</span>
-                </button>
-            </div>
-        </header>
-
-        <nav class="tabs">
-            <button class="tab-button active" data-tab="headline">行頭読み</button>
-            <button class="tab-button" data-tab="removeChar">除去文字</button>
-            <button class="tab-button" data-tab="position">位置抽出</button>
-            <button class="tab-button" data-tab="stencil">ステンシル</button>
-            <button class="tab-button" data-tab="results">成果</button>
-        </nav>
-
-        <main class="tab-content">
-            <!-- 行頭読みタブ -->
-            <div id="headline" class="tab-panel active">
-                <div class="challenge-header">
-                    <h2>📝 行頭読みチャレンジ</h2>
-                    <span class="level">Level: ★</span>
-                </div>
-                <div class="challenge-description">
-                    <p>各行の最初の文字を上から順に読んでみましょう。</p>
-                </div>
-                <div class="cipher-text" id="headline-cipher">
-                    <!-- JavaScriptで動的に生成 -->
-                </div>
-                <div class="answer-section">
-                    <label for="headline-answer">解答:</label>
-                    <input type="text" id="headline-answer" class="answer-input" placeholder="ひらがなで入力">
-                    <div class="button-group">
-                        <button class="hint-button" data-challenge="headline">💡 ヒント</button>
-                        <button class="check-button" data-challenge="headline">✓ 確認</button>
-                        <button class="next-button" data-challenge="headline">→ 次の問題</button>
-                    </div>
-                </div>
-                <div class="progress">
-                    <span class="progress-text">進捗: </span>
-                    <span class="progress-dots" id="headline-progress">○○○○○</span>
-                    <span class="progress-count">0/5</span>
-                    <span class="current-problem-indicator" id="headline-current">問題1</span>
-                    <span class="progress-hint">※クリックで問題選択</span>
-                </div>
-            </div>
-
-            <!-- 除去文字タブ -->
-            <div id="removeChar" class="tab-panel">
-                <div class="challenge-header">
-                    <h2>🧩 除去文字チャレンジ</h2>
-                    <span class="level">Level: ★★</span>
-                </div>
-                <div class="challenge-description">
-                    <p>ヒントをもとに、特定の文字を除いて読んでみましょう。</p>
-                </div>
-                <div class="hint-display" id="removeChar-hint">
-                    <!-- JavaScriptで動的に生成 -->
-                </div>
-                <div class="cipher-text" id="removeChar-cipher">
-                    <!-- JavaScriptで動的に生成 -->
-                </div>
-                <div class="answer-section">
-                    <div class="remove-chars">
-                        <label>除去する文字:</label>
-                        <input type="text" id="remove-char-1" class="char-input" maxlength="1">
-                        <input type="text" id="remove-char-2" class="char-input" maxlength="1">
-                        <input type="text" id="remove-char-3" class="char-input" maxlength="1">
-                        <input type="text" id="remove-char-4" class="char-input" maxlength="1">
-                    </div>
-                    <div class="remove-chars-note">
-                        <small>※除去する文字は2文字とは限りません</small>
-                    </div>
-                    <label for="removeChar-answer">解答:</label>
-                    <input type="text" id="removeChar-answer" class="answer-input" placeholder="ひらがなで入力">
-                    <div class="button-group">
-                        <button class="hint-button" data-challenge="removeChar">💡 ヒント</button>
-                        <button class="check-button" data-challenge="removeChar">✓ 確認</button>
-                        <button class="next-button" data-challenge="removeChar">→ 次の問題</button>
-                    </div>
-                </div>
-                <div class="progress">
-                    <span class="progress-text">進捗: </span>
-                    <span class="progress-dots" id="removeChar-progress">○○○○○</span>
-                    <span class="progress-count">0/5</span>
-                    <span class="current-problem-indicator" id="removeChar-current">問題1</span>
-                    <span class="progress-hint">※クリックで問題選択</span>
-                </div>
-            </div>
-
-            <!-- 位置抽出タブ -->
-            <div id="position" class="tab-panel">
-                <div class="challenge-header">
-                    <h2>🎯 位置抽出チャレンジ</h2>
-                    <span class="level">Level: ★★</span>
-                </div>
-                <div class="challenge-description">
-                    <p>指定されたルールに従って、特定の位置の文字を読み取りましょう。</p>
-                </div>
-                <div class="rule-display" id="position-rule">
-                    <!-- JavaScriptで動的に生成 -->
-                </div>
-                <div class="cipher-text" id="position-cipher">
-                    <!-- JavaScriptで動的に生成 -->
-                </div>
-                <div class="answer-section">
-                    <label for="position-answer">解答:</label>
-                    <input type="text" id="position-answer" class="answer-input" placeholder="ひらがなで入力">
-                    <div class="button-group">
-                        <button class="hint-button" data-challenge="position">💡 ヒント</button>
-                        <button class="check-button" data-challenge="position">✓ 確認</button>
-                        <button class="next-button" data-challenge="position">→ 次の問題</button>
-                    </div>
-                </div>
-                <div class="progress">
-                    <span class="progress-text">進捗: </span>
-                    <span class="progress-dots" id="position-progress">○○○○○</span>
-                    <span class="progress-count">0/5</span>
-                    <span class="current-problem-indicator" id="position-current">問題1</span>
-                    <span class="progress-hint">※クリックで問題選択</span>
-                </div>
-            </div>
-
-            <!-- ステンシルタブ -->
-            <div id="stencil" class="tab-panel">
-                <div class="challenge-header">
-                    <h2>🎭 ステンシルチャレンジ</h2>
-                    <span class="level">Level: ★★★</span>
-                </div>
-                <div class="challenge-description">
-                    <p>ステンシル（穴空き型紙）を重ねて、見える文字を読み取りましょう。</p>
-                </div>
-                <div class="stencil-container">
-                    <div class="stencil-text" id="stencil-cipher">
-                        <!-- JavaScriptで動的に生成 -->
-                    </div>
-                    <div class="stencil-overlay" id="stencil-overlay">
-                        <!-- JavaScriptで動的に生成 -->
-                    </div>
-                </div>
-                <div class="stencil-controls">
-                    <div class="stencil-toggle">
-                        <button id="stencil-apply" class="stencil-button">🎭 ステンシルを乗せる</button>
-                        <button id="stencil-remove" class="stencil-button" style="display: none;">📄 ステンシルを外す</button>
-                    </div>
-                    <div class="stencil-move-controls" style="display: none;">
-                        <button class="stencil-move">↑</button>
-                        <button class="stencil-move">↓</button>
-                        <button class="stencil-move">←</button>
-                        <button class="stencil-move">→</button>
-                        <button class="stencil-rotate">↻ 回転</button>
-                    </div>
-                </div>
-                <div class="answer-section">
-                    <label for="stencil-answer">解答:</label>
-                    <input type="text" id="stencil-answer" class="answer-input" placeholder="ひらがなで入力">
-                    <div class="button-group">
-                        <button class="hint-button" data-challenge="stencil">💡 ヒント</button>
-                        <button class="check-button" data-challenge="stencil">✓ 確認</button>
-                        <button class="next-button" data-challenge="stencil">→ 次の問題</button>
-                    </div>
-                </div>
-                <div class="progress">
-                    <span class="progress-text">進捗: </span>
-                    <span class="progress-dots" id="stencil-progress">○○○○○</span>
-                    <span class="progress-count">0/5</span>
-                    <span class="current-problem-indicator" id="stencil-current">問題1</span>
-                    <span class="progress-hint">※クリックで問題選択</span>
-                </div>
-            </div>
-
-            <!-- 成果タブ -->
-            <div id="results" class="tab-panel">
-                <div class="results-header">
-                    <h2>🏆 チャレンジ成果</h2>
-                </div>
-                <div class="results-container">
-                    <div class="chart-section">
-                        <canvas id="radar-chart" width="400" height="400"></canvas>
-                    </div>
-                    <div class="score-section">
-                        <h3>📊 各チャレンジ結果</h3>
-                        <div class="score-item">
-                            <span class="score-label">行頭読み:</span>
-                            <span class="score-dots" id="headline-score">○○○○○</span>
-                            <span class="score-percent">0%</span>
-                        </div>
-                        <div class="score-item">
-                            <span class="score-label">除去文字:</span>
-                            <span class="score-dots" id="removeChar-score">○○○○○</span>
-                            <span class="score-percent">0%</span>
-                        </div>
-                        <div class="score-item">
-                            <span class="score-label">位置抽出:</span>
-                            <span class="score-dots" id="position-score">○○○○○</span>
-                            <span class="score-percent">0%</span>
-                        </div>
-                        <div class="score-item">
-                            <span class="score-label">ステンシル:</span>
-                            <span class="score-dots" id="stencil-score">○○○○○</span>
-                            <span class="score-percent">0%</span>
-                        </div>
-                        <div class="total-score">
-                            <strong>総合スコア: <span id="total-score">0/20 (0%)</span></strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="rank-display">
-                    <h3>🎖️ 総合ランク: <span id="rank">-</span></h3>
-                    <p id="rank-message">チャレンジを始めてみましょう！</p>
-                </div>
-                <div class="share-buttons">
-                    <button id="share-twitter" class="share-button">📱 結果をXでシェア</button>
-                    <button id="download-image" class="share-button">📥 画像保存</button>
-                    <button id="retry-all" class="share-button">🔄 もう一度挑戦</button>
-                </div>
-            </div>
-        </main>
-
-        <div id="message-modal" class="modal">
-            <div class="modal-content">
-                <span class="modal-close">&times;</span>
-                <p id="modal-message"></p>
-            </div>
-        </div>
-
-        <div id="help-modal" class="modal">
-            <div class="modal-content help-modal-content">
-                <span class="modal-close help-modal-close">&times;</span>
-                <div id="help-content">
-                    <!-- ヘルプコンテンツがここに動的に挿入される -->
-                </div>
-            </div>
-        </div>
-
-        <footer>
-            <p>🔗 GitHubリポジトリはこちら（ <a href="https://github.com/ipusiron/hidden-message-challenge" target="_blank" rel="noopener noreferrer">ipusiron/hidden-message-challenge</a> ）</p>
-        </footer>
+  <header class="site-header">
+    <div class="header-side"></div>
+    <div class="header-title">
+      <h1>🔍 Hidden Message Challenge</h1>
+      <p data-i18n="app.subtitle">分置式暗号文に隠されたメッセージを見つけ出そう</p>
     </div>
+    <div class="header-side header-actions">
+      <button type="button" id="lang-button" class="header-button" data-i18n="app.langButton" data-i18n-aria-label="app.langLabel">English</button>
+      <button type="button" id="help-button" class="header-button" data-i18n-aria-label="help.open" data-i18n-title="help.open">?</button>
+    </div>
+  </header>
 
-    <script src="js/main.js" type="module"></script>
-    <!-- <script src="js/app.js"></script> -->
+  <noscript><p class="noscript">このツールは JavaScript を使います。 / This tool requires JavaScript.</p></noscript>
+
+  <nav class="tabs" role="tablist" data-i18n-aria-label="app.tabs">
+    <button type="button" class="tab-button active" role="tab" id="tab-headline" aria-controls="headline" aria-selected="true" data-tab="headline" data-i18n="tab.headline">行頭読み</button>
+    <button type="button" class="tab-button" role="tab" id="tab-removeChar" aria-controls="removeChar" aria-selected="false" tabindex="-1" data-tab="removeChar" data-i18n="tab.removeChar">除去文字</button>
+    <button type="button" class="tab-button" role="tab" id="tab-position" aria-controls="position" aria-selected="false" tabindex="-1" data-tab="position" data-i18n="tab.position">位置抽出</button>
+    <button type="button" class="tab-button" role="tab" id="tab-stencil" aria-controls="stencil" aria-selected="false" tabindex="-1" data-tab="stencil" data-i18n="tab.stencil">ステンシル</button>
+    <button type="button" class="tab-button" role="tab" id="tab-results" aria-controls="results" aria-selected="false" tabindex="-1" data-tab="results" data-i18n="tab.results">成果</button>
+  </nav>
+
+  <main>
+    <!-- 行頭読み -->
+    <section id="headline" class="tab-panel challenge" role="tabpanel" aria-labelledby="tab-headline" data-kind="headline">
+      <div class="challenge-header">
+        <h2 data-i18n="headline.heading">📝 行頭読みチャレンジ</h2>
+        <span class="level" data-stars="★"></span>
+      </div>
+      <p class="challenge-desc" data-i18n="headline.desc">各行の最初の文字を上から順に読んでみましょう。</p>
+      <ol class="cipher cipher-lines" id="headline-cipher"></ol>
+    </section>
+
+    <!-- 除去文字 -->
+    <section id="removeChar" class="tab-panel challenge" role="tabpanel" aria-labelledby="tab-removeChar" data-kind="removeChar" hidden>
+      <div class="challenge-header">
+        <h2 data-i18n="removeChar.heading">🧩 除去文字チャレンジ</h2>
+        <span class="level" data-stars="★★"></span>
+      </div>
+      <p class="challenge-desc" data-i18n="removeChar.desc">絵とことばのヒントから、取り除く文字を当てて読みましょう。</p>
+      <p class="picture-hint"><span class="picture-label" data-i18n="removeChar.picture">ヒントのことば</span> <span id="removeChar-picture"></span></p>
+      <p class="cipher cipher-text" id="removeChar-cipher"></p>
+      <fieldset class="remove-chars">
+        <legend data-i18n="removeChar.charsLabel">取り除く文字</legend>
+        <input type="text" class="char-input" id="remove-char-1" maxlength="1" autocomplete="off" data-n="1">
+        <input type="text" class="char-input" id="remove-char-2" maxlength="1" autocomplete="off" data-n="2">
+        <input type="text" class="char-input" id="remove-char-3" maxlength="1" autocomplete="off" data-n="3">
+        <input type="text" class="char-input" id="remove-char-4" maxlength="1" autocomplete="off" data-n="4">
+      </fieldset>
+      <p class="preview" id="removeChar-preview" aria-live="polite"></p>
+    </section>
+
+    <!-- 位置抽出 -->
+    <section id="position" class="tab-panel challenge" role="tabpanel" aria-labelledby="tab-position" data-kind="position" hidden>
+      <div class="challenge-header">
+        <h2 data-i18n="position.heading">🎯 位置抽出チャレンジ</h2>
+        <span class="level" data-stars="★★"></span>
+      </div>
+      <p class="challenge-desc" data-i18n="position.desc">ルールに従って、決まった位置の文字を読み取りましょう。</p>
+      <p class="rule" id="position-rule"></p>
+      <p class="cipher cipher-text" id="position-cipher"></p>
+      <p class="cipher cipher-text reading" id="position-reading" hidden></p>
+    </section>
+
+    <!-- ステンシル -->
+    <section id="stencil" class="tab-panel challenge" role="tabpanel" aria-labelledby="tab-stencil" data-kind="stencil" hidden>
+      <div class="challenge-header">
+        <h2 data-i18n="stencil.heading">🎭 ステンシルチャレンジ</h2>
+        <span class="level" data-stars="★★★"></span>
+      </div>
+      <p class="challenge-desc" data-i18n="stencil.desc">穴の開いた型紙を文字の表に重ね、穴から見える文字を読みましょう。</p>
+      <div class="stencil-area">
+        <table class="stencil-grid" id="stencil-grid" data-i18n-aria-label="stencil.gridLabel"></table>
+        <div class="stencil-controls" role="group" data-i18n-aria-label="stencil.controls">
+          <button type="button" id="stencil-toggle" class="control-button wide">型紙を乗せる</button>
+          <div class="pad">
+            <button type="button" class="control-button pad-up" data-move="0,-1" data-i18n="stencil.up">上へ</button>
+            <button type="button" class="control-button pad-left" data-move="-1,0" data-i18n="stencil.left">左へ</button>
+            <button type="button" class="control-button pad-right" data-move="1,0" data-i18n="stencil.right">右へ</button>
+            <button type="button" class="control-button pad-down" data-move="0,1" data-i18n="stencil.down">下へ</button>
+          </div>
+          <button type="button" id="stencil-rotate" class="control-button wide" data-i18n="stencil.rotate">↻ 90度回す</button>
+          <p class="stencil-state" id="stencil-state"></p>
+        </div>
+      </div>
+      <p class="preview" id="stencil-seen" aria-live="polite"></p>
+    </section>
+
+    <!-- 成果 -->
+    <section id="results" class="tab-panel" role="tabpanel" aria-labelledby="tab-results" hidden>
+      <h2 data-i18n="results.heading">🏆 チャレンジ成果</h2>
+      <div class="results-layout">
+        <canvas id="radar-chart" width="400" height="400" role="img"></canvas>
+        <div class="results-text">
+          <h3 data-i18n="results.perKind">📊 チャレンジ別の結果</h3>
+          <ul class="kind-scores" id="kind-scores"></ul>
+          <p class="total" id="results-total"></p>
+          <p class="rank" id="results-rank"></p>
+        </div>
+      </div>
+      <div class="results-actions">
+        <a id="share-x" class="action-button" href="https://x.com/intent/post" target="_blank" rel="noopener noreferrer" data-i18n="results.share">📱 結果を X でシェア</a>
+        <button type="button" id="download-image" class="action-button" data-i18n="results.download">📥 結果を画像で保存</button>
+        <button type="button" id="reset-all" class="action-button danger" data-i18n="results.reset">🔄 最初からやり直す</button>
+      </div>
+      <p class="notice" id="results-notice" role="status"></p>
+    </section>
+  </main>
+
+  <!-- The answer form and progress row copied into each challenge panel -->
+  <template id="answer-template">
+    <form class="answer-form" novalidate>
+      <label class="answer-label" data-i18n="common.answer">解答</label>
+      <input type="text" class="answer-input" autocomplete="off" spellcheck="false" data-i18n-placeholder="common.placeholder">
+      <div class="button-group">
+        <button type="button" class="hint-button" data-i18n="common.hint">💡 ヒント</button>
+        <button type="submit" class="check-button" data-i18n="common.check">✓ 確認</button>
+        <button type="button" class="next-button" data-i18n="common.next">→ 次の問題</button>
+      </div>
+      <p class="feedback" role="status"></p>
+      <ul class="hint-list"></ul>
+      <p class="explain" hidden></p>
+    </form>
+    <div class="progress">
+      <span class="progress-label" data-i18n="common.progress">進捗</span>
+      <span class="progress-dots"></span>
+      <span class="progress-count"></span>
+      <span class="progress-current"></span>
+    </div>
+  </template>
+
+  <dialog id="help-modal" class="modal" aria-labelledby="help-title">
+    <div class="modal-header">
+      <h2 id="help-title" data-i18n="help.title">📖 ヘルプ</h2>
+      <button type="button" id="help-close" class="modal-close" data-i18n-aria-label="help.close">&times;</button>
+    </div>
+    <div class="modal-body" id="help-body"></div>
+  </dialog>
+
+  <dialog id="reset-modal" class="modal" aria-labelledby="reset-title">
+    <h2 id="reset-title" data-i18n="reset.title">進捗のリセット</h2>
+    <p data-i18n="reset.body">すべての進捗を消して最初からやり直します。よろしいですか。</p>
+    <div class="button-group">
+      <button type="button" id="reset-cancel" class="action-button" data-i18n="reset.cancel">やめる</button>
+      <button type="button" id="reset-ok" class="action-button danger" data-i18n="reset.ok">リセットする</button>
+    </div>
+  </dialog>
+
+  <footer class="footer">
+    <span data-i18n="app.footer">🔗 GitHubリポジトリーはこちら（</span><a href="https://github.com/ipusiron/hidden-message-challenge"
+      target="_blank" rel="noopener noreferrer">ipusiron/hidden-message-challenge</a><span data-i18n="app.footerEnd">）</span>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/hidden-core.js"></script>
+  <script src="js/hidden-data.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/challenges.js"></script>
+  <script src="js/results.js"></script>
 </body>
 </html>
