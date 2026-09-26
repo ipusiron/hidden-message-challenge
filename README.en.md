@@ -117,7 +117,7 @@ The picture word is a pun that names the characters to remove, for example "kesh
 ## 📜 History and examples
 
 - During the English Civil War, a letter to the captured Royalist Sir John Trevanion is said to have hidden escape directions in the third letter after each punctuation mark. The story first appeared in an 1863 magazine article, and the real John Trevanion is recorded as killed in 1643, which does not fit a story set in 1648, so it is unlikely to be history (English position puzzle 5)
-- In **World War I**, a cable disguised as a press report hid "PERSHING SAILS FROM NY JUNE I" in the first letters, and another in the second letters, of its words. David Kahn's The Codebreakers quotes them; the sender is unknown (English position puzzles 1 and 4)
+- In **World War I**, a cable disguised as a press report hid "PERSHING SAILS FROM NY JUNE I" in the first letters, and another in the second letters, of its words. David Kahn's The Codebreakers (1967) presents them as German messages but also says the sender is unknown, while H. C. Hoy (1932), who worked in British naval intelligence, describes them as used by his own side. According to Kahn, Pershing actually sailed on May 28 (English position puzzles 1 and 4)
 - In poetry, Lewis Carroll hid Alice Pleasance Liddell's name in the line heads of the closing poem of Through the Looking-Glass, and Poe hid Elizabeth's name in a poem written in his cousin's album (English acrostic puzzles 4 and 5)
 - Spies and **some wartime messages** also hid information inside ordinary text
 - The **turning grille** uses a card with holes like a stencil, but structurally it is closer to a transposition cipher
@@ -291,7 +291,8 @@ Five puzzles in the English set are historical texts. Their sources are also sho
 
 - Acrostic puzzle 4: Edgar Allan Poe, untitled album poem (c. 1829); text as given by The Edgar Allan Poe Society of Baltimore
 - Acrostic puzzle 5: Lewis Carroll, closing poem of Through the Looking-Glass (1871); text as in the 1872 Macmillan printing
-- Position puzzles 1 and 4: World War I messages quoted in David Kahn, The Codebreakers (1967)
+- Position puzzle 1: a World War I message quoted in David Kahn, The Codebreakers (1967)
+- Position puzzle 4: H. C. Hoy, 40 O.B. or How the War Was Won (1932); also quoted by Kahn
 - Position puzzle 5: S. Baring-Gould, Curiosities of Olden Times (rev. ed. 1896; first printed in Once a Week, 1863)
 
 ### Ranks

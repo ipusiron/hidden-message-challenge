@@ -246,11 +246,14 @@ const I18n = (() => {
     'source.ea5': '出典: ルイス・キャロル『鏡の国のアリス』（1871年）の結びの詩',
     'hint.ep1': '第一次世界大戦中の電文です。見かけは新聞向けの記事です。',
     'explain.ep1':
-      '「PERSHING SAILS FROM NY JUNE I」（パーシング将軍、6月1日にニューヨークを出航）。最後のIは数字の1です。デイヴィッド・カーン『The Codebreakers』が紹介している電文で、カーン自身も送り手は分からないとしています。',
+      '「PERSHING SAILS FROM NY JUNE I」（パーシング将軍、6月1日にニューヨークを出航）。最後のIは数字の1です。デイヴィッド・カーン『The' +
+      ' Codebreakers』はドイツ側の電文として紹介しつつ、送り手は分からないとも書いています。カーンによれば、実際の出航は5月28日でした。',
     'source.ep1': '出典: デイヴィッド・カーン『The Codebreakers』（1967年）が引用する第一次世界大戦の電文',
     'hint.ep4': '問題1と同じ内容を、別の電文に隠しています。今度は各単語の2文字目です。',
-    'explain.ep4': '同じ「PERSHING SAILS FROM NY JUNE I」が、各単語の2文字目に隠れています。by-productsのようにハイフンでつながった語は1語と数えます。',
-    'source.ep4': '出典: デイヴィッド・カーン『The Codebreakers』（1967年）が引用する第一次世界大戦の電文',
+    'explain.ep4':
+      '同じ「PERSHING SAILS FROM NY JUNE I」が、各単語の2文字目に隠れています。by-productsのようにハイフンでつながった語は1語と数えます。英国海軍情報部にいたH・C・ホイは、この電文を味方の側が使った例として書いており、送り手の見方は本によって分' +
+      'かれます。',
+    'source.ep4': '出典: H・C・ホイ『40 O.B. or How the War Was Won』（1932年）。デイヴィッド・カーン『The Codebreakers』（1967年）も引用',
     'hint.ep5': '王党派のジョン・トレヴァニオン卿に宛てた手紙とされる文です。句読点やダッシュのあと、3番目の英字を読みます。',
     'explain.ep5': '「PANEL AT EAST END OF CHAPEL SLIDES」（礼拝堂の東の端の羽目板が動く）。1863年の雑誌記事が初出で、実在のジョン・トレヴァニオンは1643年に戦死したとされ、1648年の話とは年が合わないため、史実とは考えにくい話です。',
     'source.ep5': '出典: S・ベアリング＝グールド『Curiosities of Olden Times』（1896年改訂版。初出は1863年の雑誌「Once a Week」）'
@@ -477,7 +480,7 @@ const I18n = (() => {
     'maker.stencil.roundTrip': 'Laying the stencil gives back the message (checked).',
     'maker.stencil.manyHoles': 'The stencil has {count} holes, more than half the grid. With many holes, the message shows even without the stencil.',
     'maker.acrostic.count': 'There are {lines} lines for {letters} letters.',
-    'maker.acrostic.short': '{count} lines have two characters or fewer; short lines stand out.',
+    'maker.acrostic.short': 'Lines of two characters or fewer: {count}. Short lines stand out.',
     'maker.acrostic.done': 'Every line head matches the message.',
     'finding.error': 'Error',
     'finding.warning': 'Warning',
@@ -521,14 +524,15 @@ const I18n = (() => {
     'source.ea5': 'Source: Lewis Carroll, closing poem of Through the Looking-Glass (1871)',
     'hint.ep1': 'A World War I cable made to look like a press report.',
     'explain.ep1':
-      '"PERSHING SAILS FROM NY JUNE I": General Pershing sails from New York on June 1 (the final I stands for 1). David Kahn quotes it in The' +
-      ' Codebreakers and says himself that the sender is unknown.',
+      '"PERSHING SAILS FROM NY JUNE I": General Pershing sails from New York on June 1 (the final I stands for 1). David Kahn\'s The Codebreakers' +
+      ' presents it as a German message but also says the sender is unknown. According to Kahn, Pershing actually sailed on May 28.',
     'source.ep1': 'Source: a World War I message quoted in David Kahn, The Codebreakers (1967)',
     'hint.ep4': 'The same message as puzzle 1, hidden in another cable. This time, the second letter of each word.',
     'explain.ep4':
       'The same "PERSHING SAILS FROM NY JUNE I", hidden in the second letter of each word. A hyphenated word such as by-products counts as one' +
-      ' word.',
-    'source.ep4': 'Source: a World War I message quoted in David Kahn, The Codebreakers (1967)',
+      ' word. H. C. Hoy, who worked in British naval intelligence, describes this cable as one used by his own side, so accounts of the sender' +
+      ' differ.',
+    'source.ep4': 'Source: H. C. Hoy, 40 O.B. or How the War Was Won (1932); also quoted in David Kahn, The Codebreakers (1967)',
     'hint.ep5': 'A letter said to have been sent to the Royalist Sir John Trevanion. Read the third letter after each punctuation mark or dash.',
     'explain.ep5':
       '"PANEL AT EAST END OF CHAPEL SLIDES". The story first appeared in an 1863 magazine article, and the real John Trevanion is recorded as' +

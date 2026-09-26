@@ -94,8 +94,8 @@ const HiddenData = (() => {
     { id: 'ep2', text: 'Still extra quiet here.', rule: { kind: 'words', index: -1 }, answers: ['late'] },
     { id: 'ep3', text: 'Dear Ann, spring is here. Our garden is green, orange lilies bloom. Next week we travel.',
       rule: { kind: 'mark', marks: [',', '.'], offset: 1, lettersOnly: true }, answers: ['soon'] },
-    { id: 'ep4', source: true, text: 'Apparently neutral\'s protest is thoroughly discounted and ignored. Isman hard hit. ' +
-      'Blockade issue affects pretext for embargo on by-products, ejecting suets and vegetable oils.',
+    { id: 'ep4', source: true, text: 'Apparently neutrals’ protest is thoroughly discounted and ignored. Isman hard hit. Blockade issue affects ' +
+      'pretext for embargo on by-products, ejecting suets and vegetable oils.',
       rule: { kind: 'words', index: 1 }, answers: ['pershingsailsfromnyjunei'] },
     { id: 'ep5', source: true, text: 'WORTHIE SIR JOHN—Hope, that is yᵉ beste comfort of yᵉ afflictyd, cannot much, I fear me, help you now. That I ' +
       'wolde saye to you, is this only: if ever I may be able to requite that I do owe you, stand not upon asking of ' +
