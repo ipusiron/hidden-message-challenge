@@ -23,7 +23,8 @@ test('voicing marks and letter order', () => {
   assert.ok(!C.sameLetters('をわかよなむ', 'わかをよむ'), 'an extra letter does not match');
 });
 
-test('acrostic: first non-space character of each line with its position', () => {
+test('acrostic: first letter of each line with its position', () => {
+  assert.deepEqual(C.acrostic('"Love not"\n  (a) b'), [{ row: 0, col: 1, char: 'L' }, { row: 1, col: 3, char: 'a' }], 'quotes are skipped');
   assert.deepEqual(C.acrostic('あいう\n  かき\n\nさ'), [{ row: 0, col: 0, char: 'あ' }, { row: 1, col: 2, char: 'か' }, { row: 3, col: 0, char: 'さ' }]);
 });
 
@@ -65,4 +66,88 @@ test('stencil: rotation is clockwise and shifting moves the holes', () => {
 
 test('rank thresholds', () => {
   assert.deepEqual([100, 95, 94, 80, 79, 60, 59, 40, 39, 0].map(C.rank), ['S', 'S', 'A', 'A', 'B', 'B', 'C', 'C', 'D', 'D']);
+});
+
+test('position rules: letters of words and letters after marks', () => {
+  assert.equal(C.applyRule('Big red dog.', { kind: 'words', index: 0 }).plain, 'Brd');
+  assert.equal(C.applyRule("don't by-pass it", { kind: 'words', index: 1 }).plain, 'oyt', 'apostrophes and hyphens stay inside a word');
+  assert.equal(C.applyRule('cat dog, a', { kind: 'words', index: -1 }).plain, 'tga');
+  assert.deepEqual(C.applyRule('ab c', { kind: 'words', index: 2 }), { plain: '', indices: [-1, -1] }, 'short words give nothing');
+  assert.equal(C.applyRule('1917 ok', { kind: 'words', index: 0 }).plain, 'o', 'a word without letters is skipped');
+  const r = C.applyRule('Hi, the cat. Ok', { kind: 'mark', marks: [',', '.'], offset: 3, lettersOnly: true });
+  assert.deepEqual(r, { plain: 'e', indices: [6, -1] }, 'spaces are not counted; nothing after the end');
+  assert.equal(C.applyRule('a, b', { kind: 'mark', marks: [','], offset: 1 }).plain, ' ', 'without lettersOnly every character counts');
+});
+
+test('rule wording comes from the rule object', () => {
+  const t = (key, values = {}) => key + JSON.stringify(values);
+  assert.equal(C.describeRule({ kind: 'mark', marks: ['。'], offset: -1 }, t), 'rule.before1{"marks":"rule.mark{\\"mark\\":\\"。\\"}"}');
+  assert.match(C.describeRule({ kind: 'mark', marks: [','], offset: 3, lettersOnly: true }, t), /^rule\.afterNLetter/);
+  assert.match(C.describeRule({ kind: 'mark', marks: [','], offset: 1, lettersOnly: true }, t), /^rule\.after1Letter/);
+  assert.equal(C.describeRule({ kind: 'words', index: 0 }, t), 'rule.wordFirst{}');
+  assert.equal(C.describeRule({ kind: 'words', index: 1 }, t), 'rule.wordN{"n":2}');
+  assert.equal(C.describeRule({ kind: 'words', index: -1 }, t), 'rule.wordLast{}');
+  assert.match(C.describeRule({ kind: 'segments', separator: ' ', order: 'firstLast', stripDakuten: true }, t), /^rule\.withDakuten/);
+});
+
+test('maker: seeded generator and seeds', () => {
+  const a = C.rng(42), b = C.rng(42);
+  const xs = Array.from({ length: 5 }, a);
+  assert.deepEqual(xs, Array.from({ length: 5 }, b));
+  assert.ok(xs.every(x => x >= 0 && x < 1));
+  assert.notEqual(C.seedOf('a'), C.seedOf('b'));
+  assert.equal(C.seedOf('あ'), C.seedOf('あ'));
+});
+
+test('maker: removal ciphers always read back', () => {
+  for (let seed = 1; seed <= 200; seed++) {
+    for (const [msg, nulls] of [['meetatnoon', ['b']], ['あしたあおう', ['ん', 'ぬ']], ['ATTACK', ['Q', 'Z', 'X']]]) {
+      const cipher = C.makeRemoval(msg, nulls, { rate: 0.4, rand: C.rng(seed) });
+      assert.equal(C.removeChars(cipher, nulls).plain, msg, `${msg} ${seed}`);
+      assert.ok([...cipher].some(ch => nulls.includes(ch)), 'at least one filler');
+    }
+  }
+  assert.equal(C.makeRemoval('', ['b'], { rate: 0.5, rand: C.rng(1) }), '');
+  assert.equal(C.makeRemoval('ab', [], { rate: 0.5, rand: C.rng(1) }), '');
+  assert.equal(C.makeRemoval('a b', ['x'], { rate: 0, rand: C.rng(1) }), 'abx', 'spaces are dropped; one filler even at rate 0');
+});
+
+test('maker: removal findings', () => {
+  const keys = f => f.map(x => x.key.split('.').pop());
+  assert.deepEqual(keys(C.removalReport('Bees', ['b'], '')), ['clash'], 'case-insensitive clash');
+  assert.deepEqual(C.removalReport('abc', ['x'], 'xabc'), [{ level: 'ok', key: 'maker.removal.roundTrip' },
+    { level: 'info', key: 'maker.removal.share', values: { percent: 25 } }]);
+  assert.deepEqual(C.removalReport('abc', ['x'], 'xaxbxcxx').at(-1), { level: 'warning', key: 'maker.removal.tooMany', values: { percent: 63 } });
+  assert.ok(!keys(C.removalReport('abc', ['x'], 'xaxbx')).includes('roundTrip'), 'a cipher that does not read back is not confirmed');
+});
+
+test('maker: stencils always read back and use matching fillers', () => {
+  for (let seed = 1; seed <= 200; seed++) {
+    for (const msg of ['SPY', 'あいしてる', 'attack at dawn', 'ABCDEFGHIJKLMNOPQRSTUVWXY']) {
+      const made = C.makeStencil(msg, { rand: C.rng(seed) });
+      assert.equal(C.visible(made.grid, made.mask).plain, C.messageLetters(msg).join(''), `${msg} ${seed}`);
+      assert.equal(made.mask.flat().filter(Boolean).length, C.messageLetters(msg).length);
+    }
+  }
+  assert.equal(C.makeStencil('A'.repeat(26), { rand: C.rng(1) }), null);
+  assert.equal(C.makeStencil('', { rand: C.rng(1) }), null);
+  const kana = C.fillerAlphabet('あいう');
+  assert.ok(kana.length > 60 && kana.every(ch => ch >= 'ぁ' && ch <= 'ん'));
+  assert.ok(!kana.some(ch => C.fullSize(ch) !== ch), 'no small kana');
+  assert.deepEqual([C.fillerAlphabet('abc')[0], C.fillerAlphabet('ABC')[0], C.fillerAlphabet('Abc')[0]], ['a', 'A', 'A']);
+  const keys = f => f.map(x => x.key.split('.').pop());
+  assert.deepEqual(keys(C.stencilReport('A'.repeat(26))), ['tooLong']);
+  assert.deepEqual(keys(C.stencilReport('A'.repeat(13), C.makeStencil('A'.repeat(13), { rand: C.rng(3) }))), ['roundTrip', 'manyHoles']);
+  assert.deepEqual(keys(C.stencilReport('SPY')), []);
+});
+
+test('maker: acrostic report while writing', () => {
+  const r = C.acrosticReport('abc', 'apple\n\nbanana\nx');
+  assert.deepEqual(r.lines.map(l => [l.row, l.char, l.expected, l.ok]), [[0, 'a', 'a', true], [2, 'b', 'b', true], [3, 'x', 'c', false]]);
+  assert.deepEqual(r.findings.map(f => f.key.split('.').pop()), ['short']);
+  assert.equal(r.next, '');
+  assert.equal(C.acrosticReport('abcd', 'Apple\nBanana').next, 'c');
+  assert.deepEqual(C.acrosticReport('ab', 'Apple\nBanana').findings.map(f => f.key.split('.').pop()), ['done'], 'case-insensitive');
+  assert.deepEqual(C.acrosticReport('ab', 'Apple').findings.map(f => f.key.split('.').pop()), ['count']);
+  assert.equal(C.acrosticReport('あい', 'アサ\nいぬ').findings.at(-1).key, 'maker.acrostic.done', 'katakana counts as hiragana');
 });
