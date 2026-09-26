@@ -27,10 +27,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const method = () => document.querySelector('input[name="maker-method"]:checked').value;
   const nullChars = () => HiddenCore.messageLetters(nulls.value);      // units, so a decomposed character stays whole
 
+  // The core lists characters separated by spaces. Japanese puts each one in 「」, English quotes them;
+  // code points (U+XXXX) are listed with a separator only.
+  function findingText(f) {
+    const values = f.values || {};
+    if (typeof values.chars !== 'string') return I18n.t(f.key, values);
+    const list = values.chars.split(' ');
+    const ja = I18n.language === 'ja';
+    const chars = f.key === 'maker.removal.invisible' ? list.join(ja ? '、' : ', ')
+      : ja ? list.map(c => '「' + c + '」').join('') : list.map(c => '"' + c + '"').join(', ');
+    return I18n.t(f.key, { ...values, chars });
+  }
+
   // Screen readers hear one short summary, and only when it changes (the lists themselves are not live regions).
   // `again` re-announces an unchanged summary, for "make again".
   function announce(finding, again) {
-    const text = finding ? I18n.t(finding.key, finding.values || {}) : '';
+    const text = finding ? findingText(finding) : '';
     if (status.textContent === text && !again) return;
     status.textContent = '';
     requestAnimationFrame(() => { status.textContent = text; });
@@ -41,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     findingsList.replaceChildren(...findings.map(f => {
       const item = el('li', `finding finding-${f.level}`);
       item.append(el('span', `finding-level finding-level-${f.level}`, I18n.t(`finding.${f.level}`)),
-        el('span', 'finding-text', I18n.t(f.key, f.values || {})));
+        el('span', 'finding-text', findingText(f)));
       return item;
     }));
   }

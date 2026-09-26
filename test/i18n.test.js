@@ -57,6 +57,13 @@ test('every key used by the markup and scripts exists', () => {
   for (const s of ['Solved', 'Missed', 'Todo']) assert.ok(Object.hasOwn(I18n.ja, `common.dot${s}`), s);
 });
 
+test('the fallback text in the markup matches the Japanese dictionary', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const pairs = [...html.matchAll(/data-i18n="([^"]+)"[^>]*>([^<]+)</g)].filter(m => m[2].trim());
+  assert.ok(pairs.length > 50, String(pairs.length));
+  for (const [, key, text] of pairs) assert.equal(text, I18n.ja[key], key);
+});
+
 test('keys built by the core and the maker exist', () => {
   const C = require('../js/hidden-core.js');
   const check = (key, values = {}) => {

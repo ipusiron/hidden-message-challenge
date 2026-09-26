@@ -225,6 +225,8 @@ Errors in the previous version and their fixes:
 - The second hint of the position challenge erased the text (the rule text had changed and no highlighting branch matched it)
 - Reloading reset the progress shown on each challenge tab to zero (only the Results tab read the saved values, so the two disagreed)
 - Puzzle data: removal puzzle 5 lacked one character; position puzzle 3 said "2 after" but the answer needs the third character; stencil puzzle 2 had one hole too many; the hint for stencil puzzle 3 said "read from the top" although it needs turning and rearranging
+- On the Results tab, the left and right labels of the radar chart (Stencil, Removal) were cut off at the edges, both on screen and in the saved image
+- Some answers written the way the page shows them were marked wrong: "すとけつこう" for stencil puzzle 5, with the full-size tsu that shows through the holes, and "JUNE 1" for the cables, whose explanation says the final I stands for 1. Both are now accepted
 
 ### Puzzles and known answers (Japanese set)
 
@@ -251,7 +253,7 @@ The twenty Japanese puzzles in `js/hidden-data.js` read with `js/hidden-core.js`
 | `s2` | Stencil | Turn 180° and rearrange | `をわかよむ` | `わかをよむ` |
 | `s3` | Stencil | Turn 270° and rearrange | `さむゆふい` | `さむいふゆ` |
 | `s4` | Stencil | Turn 270° | `きょうあした` | `きょうあした` |
-| `s5` | Stencil | Turn 180° and rearrange | `うけこすつと` | `すとけっこう` |
+| `s5` | Stencil | Turn 180° and rearrange | `うけこすつと` | `すとけっこう` / `すとけつこう` |
 
 ### Puzzles and known answers (English set)
 
@@ -269,10 +271,10 @@ The twenty English puzzles. Answers are letters; case and spaces do not matter.
 | `er3` | Removal | Remove `C` | `BRINGTHEMAP` | `bringthemap` |
 | `er4` | Removal | Remove `I` | `THEPLANHASCHANGED` | `theplanhaschanged` |
 | `er5` | Removal | Remove `B`, `T` | `COMEALONE` | `comealone` |
-| `ep1` | Position | Read the first letter of each word. | `PershinGsailSfromnYjunei` | `pershingsailsfromnyjunei` |
+| `ep1` | Position | Read the first letter of each word. | `PershinGsailSfromnYjunei` | `pershingsailsfromnyjunei` / `pershingsailsfromnyjune1` |
 | `ep2` | Position | Read the last letter of each word. | `late` | `late` |
 | `ep3` | Position | Read the first letter after each "," or "." (spaces and symbols are not counted). | `sOoN` | `soon` |
-| `ep4` | Position | Read letter 2 of each word. | `pershingsailsfromnyjunei` | `pershingsailsfromnyjunei` |
+| `ep4` | Position | Read letter 2 of each word. | `pershingsailsfromnyjunei` | `pershingsailsfromnyjunei` / `pershingsailsfromnyjune1` |
 | `ep5` | Position | Read letter 3 after each "," or "." or ":" or "—", counting letters only. | `panelateastendofchapelslides` | `panelateastendofchapelslides` |
 | `es1` | Stencil | Lay without turning | `SPY` | `spy` |
 | `es2` | Stencil | Turn 90° | `CODE` | `code` |
@@ -328,13 +330,13 @@ npm test
 - Node.js 22 or later. No dependencies (`node --test`)
 - GitHub Actions runs them on every push and pull request
 - `test/core.test.js`: answer comparison, voicing marks, anagrams, the four reading methods (including the English word rules), turning and shifting the card, ranks, and the maker's generators and checks (reading back for 200 seeds)
-- `test/data.test.js`: all 40 Japanese and English answers follow from their rules, and the fixed data errors stay fixed
+- `test/data.test.js`: all 40 Japanese and English answers follow from their rules, other accepted spellings stay within the allowed variants, and the fixed data errors stay fixed
 - `test/progress.test.js`: the saved format, broken values, recording answers and the summary
-- `test/html.test.js`: CSP, ARIA and forbidden patterns (innerHTML, inline handlers, ES modules and so on)
-- `test/i18n.test.js`: matching Japanese and English keys, no Japanese left in English, hints and explanations for every puzzle
+- `test/html.test.js`: CSP, ARIA, forbidden patterns (innerHTML, inline handlers, ES modules and so on) and the address of the share link
+- `test/i18n.test.js`: matching Japanese and English keys, no Japanese left in English, hints and explanations for every puzzle, and the fallback text in the markup matching the Japanese dictionary
 - `test/contrast.test.js`: color contrast ratios
 - `test/format.test.js`: line lengths and file sizes
-- `test/readme.test.js`: the tables, structure and images of this README and README.md
+- `test/readme.test.js`: the tables (including the wording of the position rules), structure and images of this README and README.md
 
 ---
 

@@ -86,8 +86,9 @@ const HiddenCore = (() => {
   // words: the letter at `index` of each word (-1 = last); words are separated by spaces and only letters count.
   // Combinations that have no wording in describeRule are rejected instead of being read one way and described another
   function checkRule(rule) {
+    if (!['mark', 'words', 'segments'].includes(rule.kind)) throw new Error('Unknown rule: ' + rule.kind);
     if (rule.kind === 'mark' && rule.lettersOnly && rule.offset < 1) throw new Error('lettersOnly needs a positive offset');
-    if (rule.kind === 'mark' && rule.offset < -1) throw new Error('only -1 is supported before a mark');
+    if (rule.kind === 'mark' && (rule.offset === 0 || rule.offset < -1)) throw new Error('only -1 and 1 or more are supported');
     if (rule.kind === 'words' && rule.index < -1) throw new Error('only -1 is supported from the end of a word');
   }
 
@@ -224,11 +225,20 @@ const HiddenCore = (() => {
     return Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
   }
 
-  // Inserts filler characters before each letter with probability `rate` (at least one filler overall)
+  // Filler units as typed, without whitespace
   const fillerUnits = nulls => nulls.flatMap(units).filter(u => u.trim() !== '');
 
+  // Latin fillers take the case of a message whose Latin letters are all in one case (capitals in "meet" would stand out)
+  function caseFolder(letters) {
+    const latin = letters.join('').replace(/[^A-Za-z]/g, '');
+    if (latin && latin === latin.toLowerCase()) return u => u.replace(/[A-Z]/g, ch => ch.toLowerCase());
+    if (latin && latin === latin.toUpperCase()) return u => u.replace(/[a-z]/g, ch => ch.toUpperCase());
+    return u => u;
+  }
+
+  // Inserts a filler before each letter with probability `rate`, and maybe one at the end (at least one overall)
   function makeRemoval(message, nulls, { rate, rand }) {
-    const letters = messageLetters(message), fill = fillerUnits(nulls).filter(u => !invisible(u));
+    const letters = messageLetters(message), fill = fillerUnits(nulls).filter(u => !invisible(u)).map(caseFolder(letters));
     if (!letters.length || !fill.length) return '';
     const pick = () => fill[Math.floor(rand() * fill.length)];
     let out = '', used = 0;
@@ -307,8 +317,10 @@ const HiddenCore = (() => {
     const findings = [];
     const skipped = [...new Set(all.filter(ch => !isLetter(ch)))];
     if (skipped.length) findings.push({ level: 'info', key: 'maker.acrostic.skipped', values: { chars: skipped.join(' ') } });
+    // Fewer lines than letters is normal while writing (the next head is shown); more lines than letters is a mistake
     if (heads.length !== letters.length) {
-      findings.push({ level: 'warning', key: 'maker.acrostic.count', values: { lines: heads.length, letters: letters.length } });
+      const level = heads.length > letters.length ? 'warning' : 'info';
+      findings.push({ level, key: 'maker.acrostic.count', values: { lines: heads.length, letters: letters.length } });
     }
     const short = heads.filter(h => [...rows[h.row].trim()].length <= 2).length;
     if (short) findings.push({ level: 'info', key: 'maker.acrostic.short', values: { count: short } });

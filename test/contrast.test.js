@@ -25,7 +25,7 @@ test('text colors meet 4.5:1 on their backgrounds', () => {
     [vars.text, '#ffffff'], [vars.text, '#f8fafc'], [vars.muted, '#ffffff'], [vars.muted, '#f8fafc'], [vars.muted, '#e2e8f0'],
     [vars.muted, '#eef2ff'], [vars['warn-text'], '#fef9c3'], [vars.primary, '#eef2ff'], [vars.ok, '#ffffff'], [vars.ng, '#ffffff'],
     [vars.text, '#fbbf24'], [vars.text, '#f59e0b'], [vars.text, '#fde68a'], ['#7f1d1d', '#fecaca'], ['#14532d', '#dcfce7'],
-    ['#ffffff', '#166534'], ['#ffffff', '#991b1b']
+    ['#ffffff', '#166534'], ['#ffffff', '#991b1b'], ['#7f1d1d', '#fee2e2'], ['#ffffff', vars['warn-text']]
   ];
   for (const [fg, bg] of pairs) assert.ok(ratio(fg, bg) >= 4.5, `${fg} on ${bg}: ${ratio(fg, bg).toFixed(2)}`);
 });
@@ -39,7 +39,8 @@ test('field borders meet 3:1 against white', () => {
 
 test('the pairs above are the ones the stylesheet uses', () => {
   for (const rule of ['.hint-button { background: #fbbf24; color: var(--text); }', '.check-button { background: var(--ok); color: #ffffff; }',
-    'mark.removed { background: #fecaca; color: #7f1d1d;', '.explain { margin: 0; padding: 0.75rem 1rem; background: #dcfce7; color: #14532d;']) {
+    'mark.removed { background: #fecaca; color: #7f1d1d;', '.explain { margin: 0; padding: 0.75rem 1rem; background: #dcfce7; color: #14532d;',
+    '.maker-line-check .line-ng { background: #fee2e2; color: #7f1d1d; }', '.finding-level-warning { background: var(--warn-text); }']) {
     assert.ok(css.includes(rule), rule);
   }
 });

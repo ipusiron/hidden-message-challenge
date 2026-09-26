@@ -1,4 +1,4 @@
-/* Hidden Message Challenge - text colors come from the variables below (test/contrast.test.js checks them) */
+/* Hidden Message Challenge - text colors come from the variables below and a few literal pairs; test/contrast.test.js checks them all */
 :root {
   --primary: #4338ca;          /* white text 7.90:1 */
   --primary-dark: #3730a3;     /* white text 9.93:1 */
@@ -41,7 +41,7 @@ button:focus-visible, input:focus-visible, a:focus-visible {
 }
 .header-title { text-align: center; }
 .header-title h1 { margin: 0; font-size: clamp(1.5rem, 5vw, 2.4rem); color: var(--primary); }
-.header-title p { margin: 0.25rem 0 0; color: var(--muted); }
+.header-title p { margin: 0.25rem 0 0; color: var(--muted); text-wrap: balance; }
 .header-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
 .header-button {
   min-width: 44px;
@@ -55,7 +55,8 @@ button:focus-visible, input:focus-visible, a:focus-visible {
   cursor: pointer;
 }
 .header-button:hover { background: #eef2ff; }
-@media (max-width: 640px) {
+/* Below 860px the three-column header squeezes the language button into the title, so it stacks instead */
+@media (max-width: 860px) {
   .site-header { grid-template-columns: 1fr; }
   .header-side:first-child { display: none; }
   .header-actions { justify-content: center; }
@@ -113,6 +114,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 0 1rem 2rem; }
 }
 .cipher-lines { padding-left: 3rem; }
 .cipher-line { padding: 0.35rem 0; }
+.cipher-line:empty { list-style: none; counter-increment: list-item 0; }     /* a blank line between stanzas gets no number */
 .cipher-line::marker { color: var(--muted); font-size: 0.9rem; }
 .cipher-text { white-space: pre-wrap; }
 .source { margin: -0.5rem 0 0; color: var(--muted); font-size: 0.9rem; text-align: right; }
@@ -126,7 +128,7 @@ mark.removed { background: #fecaca; color: #7f1d1d; text-decoration: line-throug
 
 /* ---------- Removal inputs ---------- */
 .remove-chars { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; border: none; }
-.remove-chars legend { margin-bottom: 0.4rem; font-weight: 700; }
+.remove-chars legend { margin-bottom: 0.4rem; padding: 0; font-weight: 700; }
 .char-input {
   width: 3rem;
   height: 3rem;
@@ -255,9 +257,9 @@ mark.removed { background: #fecaca; color: #7f1d1d; text-decoration: line-throug
 .results-text h3 { margin-top: 0; }
 .kind-scores { padding-left: 1.2rem; }
 .total, .rank { font-size: 1.15rem; font-weight: 700; }
-.rank { color: var(--primary); }
+.rank { color: var(--primary); word-break: auto-phrase; }       /* Japanese titles wrap between phrases, not inside a word */
 .results-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
-.notice { min-height: 1.5em; color: var(--ok); font-weight: 700; }
+.notice { margin: 0.5rem 0 0; min-height: 1.5em; color: var(--ok); font-weight: 700; }
 
 /* ---------- Dialogs ---------- */
 .modal {
@@ -272,6 +274,7 @@ mark.removed { background: #fecaca; color: #7f1d1d; text-decoration: line-throug
 .modal::backdrop { background: rgba(15, 23, 42, 0.5); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .modal-header h2 { margin: 0; }
+#reset-modal h2 { margin-top: 0; }
 .modal-close { min-width: 44px; min-height: 44px; border: none; background: transparent; color: var(--text); font-size: 1.8rem; cursor: pointer; }
 .modal-body h3 { margin: 1rem 0 0.25rem; color: var(--primary); }
 .modal-body p { margin: 0; }
@@ -291,11 +294,13 @@ mark.removed { background: #fecaca; color: #7f1d1d; text-decoration: line-throug
 .set-button { min-height: 44px; padding: 0 1rem; border: 2px solid var(--primary); }
 .set-button { border-radius: 22px; background: #ffffff; color: var(--primary); cursor: pointer; }
 .set-button[aria-pressed="true"] { background: var(--primary); color: #ffffff; font-weight: 700; }
+/* On phones the label gets its own row, so the two buttons of the switch stay together */
+@media (max-width: 440px) { .set-label { flex-basis: 100%; text-align: center; } }
 .results-set { margin: 0 0 1rem; color: var(--muted); font-weight: 700; }
 
 /* ---------- Maker ---------- */
 .maker-methods { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0 0 1rem; padding: 0; border: none; }
-.maker-methods legend { margin-bottom: 0.4rem; font-weight: 700; }
+.maker-methods legend { margin-bottom: 0.4rem; padding: 0; font-weight: 700; }
 .radio-option { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; }
 .radio-option { padding: 0 0.8rem; border: 2px solid #cbd5e1; border-radius: 8px; cursor: pointer; }
 .radio-option input { width: 20px; height: 20px; margin: 0; accent-color: var(--primary); }
@@ -321,6 +326,7 @@ mark.removed { background: #fecaca; color: #7f1d1d; text-decoration: line-throug
 .maker-line-check li { padding: 0.2rem 0.6rem; border-radius: 4px; }
 .maker-line-check .line-ok { background: #dcfce7; color: #14532d; }
 .maker-line-check .line-ng { background: #fee2e2; color: #7f1d1d; }
+#maker-actions { margin-bottom: 1rem; }
 .maker-grid { margin: 0 0 1rem; }
 .findings { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.4rem; }
 .finding { display: flex; gap: 0.6rem; align-items: baseline; }
@@ -331,7 +337,7 @@ mark.removed { background: #fecaca; color: #7f1d1d; text-decoration: line-throug
 .finding-level { flex: none; min-width: 3.5em; padding: 0.05rem 0.4rem; border-radius: 4px; }
 .finding-level { text-align: center; font-size: 0.85rem; font-weight: 700; color: #ffffff; }
 .finding-level-error { background: var(--ng); }
-.finding-level-warning { background: #854d0e; }
+.finding-level-warning { background: var(--warn-text); }
 .finding-level-info { background: var(--primary); }
 .finding-level-ok { background: var(--ok); }
 .finding-text { min-width: 0; overflow-wrap: anywhere; }

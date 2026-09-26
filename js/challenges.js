@@ -1,5 +1,5 @@
 // The four challenge panels share one flow: show a puzzle, give up to three hints, check the answer, move on.
-// What differs (drawing, the second hint, the plaintext) comes from the kind-specific objects below.
+// What differs (drawing, the second hint) comes from the kind-specific objects below.
 document.addEventListener('DOMContentLoaded', () => {
   const template = document.getElementById('answer-template');
 
@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---------- Acrostic ----------
   const headline = {
-    plain: p => (p.heads ? p.heads.join('') : HiddenCore.acrostic(p.text).map(h => h.char).join('')),
     reset() {},
     render(p, view) {
       const heads = HiddenCore.acrostic(p.text);
@@ -41,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const charInputs = [...document.querySelectorAll('#removeChar .char-input')];
   const fillRemove = p => charInputs.forEach((input, n) => { input.value = p.remove[n] || ''; });
   const removeChar = {
-    plain: p => HiddenCore.removeChars(p.cipher, p.remove).plain,
     reset() { charInputs.forEach(input => { input.value = ''; }); },
     render(p) {
       document.getElementById('removeChar-picture').textContent = p.picture;
@@ -63,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const ruleText = rule => HiddenCore.describeRule(rule, (key, values) => I18n.t(key, values));
 
   const position = {
-    plain: p => HiddenCore.applyRule(p.reading || p.text, p.rule).plain,
     reset() {},
     render(p, view) {
       document.getElementById('position-rule').textContent = I18n.t('position.rule', { rule: ruleText(p.rule) });
@@ -73,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const reading = document.getElementById('position-reading');
       reading.hidden = !(p.reading && (view.hints.length > 0 || view.solved));
       if (reading.hidden) return;
-      const body = el('span', 'reading-text');
+      const body = el('span');
       body.lang = Store.set;
       marked(body, p.reading, view.highlight ? indices : [], 'mark');
       reading.replaceChildren(el('span', 'reading-label', I18n.t('position.readingLabel')), body);
@@ -87,8 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------- Stencil ----------
   // Where the card's own top-left corner ends up after quarter turns clockwise (row, column)
   const cornerAfter = (turns, n) => [[0, 0], [0, n - 1], [n - 1, n - 1], [n - 1, 0]][turns % 4];
+  // The offset in words ("1 right and 1 up"); a negative dy moves the card up the screen
+  function shiftText(dx, dy) {
+    const parts = [];
+    if (dx) parts.push(dx > 0 ? I18n.t('stencil.shiftRight', { n: dx }) : I18n.t('stencil.shiftLeft', { n: -dx }));
+    if (dy) parts.push(dy > 0 ? I18n.t('stencil.shiftDown', { n: dy }) : I18n.t('stencil.shiftUp', { n: -dy }));
+    return parts.length ? I18n.t('stencil.shift', { parts: parts.join(I18n.t('stencil.shiftSep')) }) : I18n.t('stencil.shiftNone');
+  }
   const stencil = {
-    plain: p => HiddenCore.visible(p.grid, p.mask, p.solution).plain,
     reset(p, view) {
       Object.assign(view, { laid: false, rotation: 0, dx: 1, dy: -1 });     // start off-centre so the card must be aligned
     },
@@ -111,12 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('stencil-toggle').textContent = I18n.t(view.laid ? 'stencil.hide' : 'stencil.show');
       document.querySelectorAll('#stencil [data-move], #stencil-rotate').forEach(button => { button.disabled = !view.laid; });
       document.getElementById('stencil-state').textContent =
-        view.laid ? I18n.t('stencil.state', { deg: view.rotation * 90, dx: view.dx, dy: view.dy }) : '';
-      const seen = HiddenCore.visible(p.grid, p.mask, view).plain;
-      document.getElementById('stencil-seen').textContent = view.laid ? I18n.t('stencil.seen', { text: seen || '-' }) : I18n.t('stencil.seenNone');
+        view.laid ? I18n.t('stencil.state', { deg: view.rotation * 90, shift: shiftText(view.dx, view.dy) }) : '';
+      const seen = HiddenCore.visible(p.grid, p.mask, view).plain || I18n.t('stencil.seenEmpty');
+      document.getElementById('stencil-seen').textContent = view.laid ? I18n.t('stencil.seen', { text: seen }) : I18n.t('stencil.seenNone');
     },
     hint2(p) {
-      const key = p.solution.anagram ? 'msg.hint2StencilAnagram' : 'msg.hint2Stencil';
+      const key = p.solution.anagram ? 'msg.hint2StencilAnagram' : p.solution.rotation ? 'msg.hint2Stencil' : 'msg.hint2StencilNoTurn';
       return () => I18n.t(key, { deg: p.solution.rotation * 90 });
     },
     onSolved(p, view) {
@@ -150,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
       hintList.replaceChildren(...view.hints.map(text => el('li', 'hint-item', text())));
       hintButton.disabled = view.hints.length >= 3;
       explain.hidden = !view.solved;
-      if (view.solved) explain.textContent = I18n.t('msg.plain', { text: spec.plain(puzzle()) }) + ' ' + I18n.t(`explain.${puzzle().id}`);
+      // every explanation names the hidden text in readable form (case, spacing, the order after an anagram)
+      if (view.solved) explain.textContent = I18n.t(`explain.${puzzle().id}`);
     }
 
     function drawProgress() {
@@ -197,7 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (level === 2) view.hints.push(spec.hint2(p, view));
       if (level === 3) {
         const letters = [...p.answers[0]];
-        const start = letters.slice(0, Math.ceil(letters.length / 3)).join('');
+        const head = letters.slice(0, Math.ceil(letters.length / 3)).join('');
+        const start = Store.set === 'en' ? head.toUpperCase() : head;     // answers are stored in lowercase; the English set shows capitals
         view.hints.push(() => I18n.t('msg.hint3', { start, n: letters.length }));
       }
       draw();
@@ -213,7 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const correct = HiddenCore.isCorrect(input.value, p.answers);
       Store.update(state => Progress.record(state, kind, view.index, correct));
-      view.feedback = { key: correct ? 'msg.correct' : 'msg.wrong', tone: correct ? 'ok' : 'ng' };
+      const wrong = view.hints.length >= 3 ? 'msg.wrongNoHint' : 'msg.wrong';      // no more hints to suggest
+      view.feedback = { key: correct ? 'msg.correct' : wrong, tone: correct ? 'ok' : 'ng' };
       if (correct) {
         Object.assign(view, { solved: true, highlight: true });
         if (spec.onSolved) spec.onSolved(p, view);
