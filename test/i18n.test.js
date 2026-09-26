@@ -32,6 +32,16 @@ test('every puzzle has a hint and an explanation', () => {
   for (const key of Object.keys(I18n.ja).filter(k => /^(hint|explain)\./.test(k))) assert.ok(ids.has(key.split('.')[1]), `unused ${key}`);
 });
 
+test('quoted puzzles name their source in both languages', () => {
+  const quoted = new Set(Object.values(D.SETS).flat().filter(p => p.source).map(p => p.id));
+  const keys = Object.keys(I18n.ja).filter(k => k.startsWith('source.'));
+  assert.deepEqual(keys.map(k => k.slice(7)).sort(), [...quoted].sort());
+  for (const key of keys) {
+    assert.match(I18n.ja[key], /^出典: /, key);
+    assert.match(I18n.en[key], /^Source: /, key);
+  }
+});
+
 test('every key used by the markup and scripts exists', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const keys = [...html.matchAll(/data-i18n(?:-[a-z-]+)?="([^"]+)"/g)].map(m => m[1]);

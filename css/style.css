@@ -115,6 +115,7 @@ main { max-width: 1000px; margin: 0 auto; padding: 0 1rem 2rem; }
 .cipher-line { padding: 0.35rem 0; }
 .cipher-line::marker { color: var(--muted); font-size: 0.9rem; }
 .cipher-text { white-space: pre-wrap; }
+.source { margin: -0.5rem 0 0; color: var(--muted); font-size: 0.9rem; text-align: right; }
 .reading { font-size: 1.1rem; }
 .reading-label { display: inline-block; margin-right: 0.75rem; color: var(--muted); font-size: 0.9rem; letter-spacing: 0; }
 mark.mark { background: #fde68a; color: var(--text); border-radius: 3px; padding: 0 0.1em; font-weight: 700; }

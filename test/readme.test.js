@@ -106,9 +106,17 @@ test('the directory tree lists every tracked file with a description', () => {
 });
 
 test('removed claims and quotations stay removed', () => {
-  for (const bad of ['あくびがでるわ', 'キラのそんざい', 'トレヴァニアンの小説', '別の置いて', '分置式暗号文は見つけた敵は', 'data/challenges.json',
+  for (const bad of ['トレヴァニアンの小説', '別の置いて', '分置式暗号文は見つけた敵は', 'data/challenges.json',
     'URL共有', 'Twitter', 'ES6 Modules']) {
     assert.ok(!readme.ja.includes(bad), bad);
   }
   assert.ok(!readme.en.includes('Twitter'));
+});
+
+test('quoted works are listed with their sources', () => {
+  const I18n = require('../js/i18n.js');
+  for (const [lang, heading] of [['ja', '### 引用している作品'], ['en', '### Quoted works']]) {
+    const section = readme[lang].slice(readme[lang].indexOf(heading), readme[lang].indexOf('###', readme[lang].indexOf(heading) + 4));
+    for (const id of ['h4', 'h5']) assert.ok(section.includes(I18n[lang][`source.${id}`].replace(/^(出典|Source): /, '')), `${lang} ${id}`);
+  }
 });

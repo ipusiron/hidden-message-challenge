@@ -135,6 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.append(template.content.cloneNode(true));
     I18n.apply(panel);
     const form = panel.querySelector('.answer-form');
+    const source = el('p', 'source');                   // for quoted puzzles: kept apart from the text itself
+    form.before(source);
     const input = form.querySelector('.answer-input');
     input.id = `${kind}-answer`;
     form.querySelector('.answer-label').htmlFor = input.id;
@@ -176,6 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function draw() {
       spec.render(puzzle(), view);
+      source.hidden = !puzzle().source;
+      source.textContent = puzzle().source ? I18n.t(`source.${puzzle().id}`) : '';
       drawStatus();
       drawProgress();
     }
