@@ -128,3 +128,22 @@ test('quoted works are listed with their sources', () => {
     for (const name of authors) assert.ok(section.includes(name), `${lang} ${name}`);
   }
 });
+
+test('ユースケースの「このツールならではの使い方」の例は hidden-core.js と一致する（日英）', () => {
+  const text = 'たったいま\nすきなひとに\nけっこんしようと\nてがみをおくった';
+  assert.equal(C.acrostic(text).map((x) => x.char).join(''), 'たすけて');
+  const st = C.makeStencil('たすけて', { size: 5, rand: C.rng(1) });
+  let holes = 0;
+  for (const row of st.mask) for (const v of row) if (v) holes += 1;
+  assert.equal(holes, 4);
+  let read = '';
+  for (let i = 0; i < 5; i += 1) for (let j = 0; j < 5; j += 1) if (st.mask[i][j]) read += st.grid[i][j];
+  assert.equal(read, 'たすけて');
+  const removed = C.removeChars('たXすXけXて', ['X']);
+  assert.equal(removed.plain, 'たすけて');
+  assert.deepEqual(removed.removed, [1, 3, 5]);
+  for (const doc of [readme.ja, readme.en]) {
+    assert.ok(doc.includes('5x5') || doc.includes('5×5'));
+    assert.ok(doc.includes('25') && doc.includes('21'));
+  }
+});

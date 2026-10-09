@@ -171,6 +171,12 @@ No technical knowledge is needed.
 
 ## 🎯 Scenarios
 
+Ways of using this tool in particular
+
+- Confirming that reading the first characters reveals a hidden message (concealment-cipher classes): take the first character of each of the four lines of a plain-looking text and it spells a hidden message. The surface reads like a natural letter, yet another meaning hides in the line heads alone. You can confirm how an acrostic works on a real text
+- Confirming that only the positions of the holes carry meaning (stencil-cipher classes): placing the 4 characters of a message into a 5x5 = 25-cell stencil fills only 4 cells, and the remaining 21 are unrelated filler. Without knowing the holes (the cell positions) it looks like a random grid. You can confirm that the key that hides the message is the shape of the holes, not the content (a Cardan grille)
+- Confirming that removing chosen characters leaves the plaintext (removal-cipher classes): removing a marker character from a message mixed with filler leaves the plaintext, at the removed positions. You can confirm a removal concealment that only someone who knows the rule, which characters to remove, can read, by comparing before and after
+
 ### 📚 Scenario 1: an information security class
 
 **Setting**: a 50-minute high school lesson on information security
